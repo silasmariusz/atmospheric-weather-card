@@ -488,8 +488,8 @@ class AtmosphericWeatherCard extends HTMLElement {
                 pointer-events: none;
                 position: relative;
                 width: calc(100% + 0px);
-                margin: 0px -24px;
-                padding: 0px 24px;
+                /*margin: 0px -24px;*/
+                /*padding: 0px 24px;*/
                 height: 200px;
                 overflow: hidden;
                 border-radius: var(--ha-card-border-radius, 12px);
@@ -499,7 +499,7 @@ class AtmosphericWeatherCard extends HTMLElement {
                 transform: translateZ(0);
                 will-change: transform, opacity;
                 contain: layout style paint;
-                /* V4.2: Start hidden to prevent pop glitch */
+                /* Start hidden to prevent pop glitch */
                 opacity: 0;
                 transition: opacity ${PERFORMANCE_CONFIG.REVEAL_TRANSITION_MS}ms ease-out;
             }
@@ -2997,5 +2997,6 @@ class AtmosphericWeatherCard extends HTMLElement {
         };
     }
 }
+
 
 customElements.define('atmospheric-weather-card', AtmosphericWeatherCard);
