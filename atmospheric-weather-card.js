@@ -483,13 +483,12 @@ class AtmosphericWeatherCard extends HTMLElement {
                 background: transparent;
                 --card-background-color: var(--ha-card-background, #e4e4e4);
             }
+
             #card-root {
                 z-index: 0 !important;
                 pointer-events: none;
                 position: relative;
-                width: calc(100% + 0px);
-                /*margin: 0px -24px;*/
-                /*padding: 0px 24px;*/
+                width: 100%;
                 height: 200px;
                 overflow: hidden;
                 border-radius: var(--ha-card-border-radius, 12px);
@@ -499,9 +498,15 @@ class AtmosphericWeatherCard extends HTMLElement {
                 transform: translateZ(0);
                 will-change: transform, opacity;
                 contain: layout style paint;
-                /* Start hidden to prevent pop glitch */
+                /* V4.2: Start hidden to prevent pop glitch */
                 opacity: 0;
                 transition: opacity ${PERFORMANCE_CONFIG.REVEAL_TRANSITION_MS}ms ease-out;
+            }
+
+            /* FULL WIDTH MODE */
+            #card-root.full-width {
+                margin: 0px calc(var(--ha-view-sections-narrow-column-gap, var(--ha-card-margin, 8px)) * -1) !important;
+                padding: 0px var(--ha-view-sections-narrow-column-gap, var(--ha-card-margin, 8px)) !important;
             }
             
             #card-root.revealed {
@@ -509,12 +514,13 @@ class AtmosphericWeatherCard extends HTMLElement {
             }
             
             canvas { 
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+                position: absolute; 
+                top: 0; 
+                left: 0; 
+                width: 100%; 
+                height: 100%; 
                 pointer-events: none;
+                
                 --mask-vertical: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
                 --mask-horizontal: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
                 -webkit-mask-image: var(--mask-vertical), var(--mask-horizontal);
@@ -895,6 +901,19 @@ class AtmosphericWeatherCard extends HTMLElement {
     set hass(hass) {
         if (!hass || !this._config) return;
         
+        // --- FULL WIDTH MODE ---
+        // 1. Check if the user set "full_width: true" in YAML
+        const useFullWidth = this._config.full_width === true;
+
+        // 2. Apply or remove the class on the root element
+        if (this._elements?.root) {
+            if (useFullWidth) {
+                this._elements.root.classList.add('full-width');
+            } else {
+                this._elements.root.classList.remove('full-width');
+            }
+        }
+
         // Use safe entity getter with error handling
         const wEntity = this._getEntityState(hass, this._config.weather_entity);
         if (!wEntity) {
@@ -2985,7 +3004,8 @@ class AtmosphericWeatherCard extends HTMLElement {
 
     static getStubConfig() {
         return {
-            weather_entity: 'weather.forecast_home'
+            weather_entity: 'weather.forecast_home',
+            full_width: false
             // Optional parameters:
             // moon_phase_entity: 'sensor.moon_phase',
             // day: '/local/community/atmospheric-weather-card/day.png',
@@ -2996,6 +3016,5 @@ class AtmosphericWeatherCard extends HTMLElement {
         };
     }
 }
-
 
 customElements.define('atmospheric-weather-card', AtmosphericWeatherCard);
