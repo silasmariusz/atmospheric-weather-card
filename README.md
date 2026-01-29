@@ -85,6 +85,20 @@ The card can automatically switch its visuals (like stars vs sun) based on an In
 
 When this helper is set to "dark", the card will render night visuals (stars, dark clouds) regardless of the actual sun position.
 
+## Custom House Image Generation
+
+You can create a personalized 3D-style image for this card using AI image generators (like Midjourney or DALL-E 3) without needing 3D modeling skills.
+
+### 1. Capture a Reference
+Take a clear photo of your house or the specific area you want to display. Aim for a wide shot that shows the overall layout. Taking the photo from a corner usually helps the AI understand the perspective and depth better.
+
+### 2. Generate the Image
+Use a prompt that focuses on a "clean model" aesthetic. You can use the template below, adjusting the description to match your specific home layout.
+
+**Prompt Template:**
+Isometric view of a modern minimalist architectural model section from the outside. [Describe your specific floors or rooms here]. Materials are matte white and light wood only. No complex textures, studio lighting, very clean, simplified shapes.
+
+
 ## Troubleshooting
 * **Card is blank?** Make sure you have refreshed your browser cache.
 * **Visuals look pixelated?** This is intentional to save battery. Increase `MAX_DPR` in the code if you want it sharper.
