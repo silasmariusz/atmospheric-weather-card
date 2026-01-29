@@ -15,30 +15,31 @@
 ## Technical Features
 * **Triple-Layer Canvas Engine:** Uses dedicated background, middle, and foreground layers to create a sense of depth between weather effects and your home image.
 * **Organic Cloud Generation:** Uses a custom generator to create unique, non-repeating cloud shapes including cumulus, stratus, and cirrus varieties.
-* **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
-* **Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, airplanes, shooting stars and rare aurora borealis effects.
 * **Dynamic Weather Physics:** Individual particles for rain, snow, and hail with custom physics for speed, turbulence, and wobbling.
+* **Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, airplanes, shooting stars and rare aurora borealis effects.
+* **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
 * **Smart Battery Management:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag.
 
-## Performance & Quality Settings
-**Note:** By default, this card is in "Eco/Performance Mode" to ensure it runs smoothly on older tablets and wall panels.
+## Performance
+This card is optimized to run smoothly on standard tablets and wall panels. Because HTML Canvas animations can be demanding on hardware, the visual effects and frame rate are intentionally toned down to prevent your Home Assistant dashboard from lagging or becoming unresponsive.
 
-If you have a powerful device (PC, iPad Pro, high-end tablet) and want smoother animations or sharper graphics, you can edit the .js file directly:
+## Installation
 
-1.  Open `atmospheric-weather-card.js`.
-2.  Look for the `PERFORMANCE_CONFIG` section near the top.
-3.  Change `TARGET_FPS: 30` to 60.
-4.  Change `MAX_DPR: 2.0` to a higher number (for sharper displays).
+### Method 1: HACS (Recommended)
+1.  Open **HACS** in Home Assistant.
+2.  Go to **Frontend** > **Custom repositories** (via the top-right menu).
+3.  Add this repository URL and select the category **Dashboard**.
+4.  Click **Install**.
+5.  When prompted, accept the option to reload the dashboard.
 
-## Installation (Manual)
-
-1.  Download the `atmospheric-weather-card.js` file from this repository.
+### Method 2: Manual Installation
+1.  Download the `atmospheric-weather-card.js` file from the latest release.
 2.  Upload the file to your Home Assistant `config/www/` folder.
-3.  Go to Settings > Dashboards > Three Dots Icon > Resources.
-4.  Add Resource:
+3.  Go to **Settings** > **Dashboards** > **Three Dots Icon** > **Resources**.
+4.  Click **Add Resource**:
     * **URL:** `/local/atmospheric-weather-card.js`
     * **Resource Type:** JavaScript Module
-5.  **Important:** Refresh your browser (clear cache) after adding the resource.
+5.  Refresh your browser (clear cache) to load the card.
 
 ## Configuration
 
@@ -56,20 +57,20 @@ To get the full effect with your own home image and moon phases:
 ```yaml
 type: custom:atmospheric-weather-card
 weather_entity: weather.forecast_home
-# Optional: Full width mode
+# Optional: Full width mode. This feature dynamically detects your dashboard's CSS variables and applies negative margins so the card uses the full display width.
 full_width: false
 # Optional: Shows accurate moon phases on clear nights
-moon_phase_entity: sensor.moon_phase 
-# Optional: Change house image based on a door sensor
-door_entity: binary_sensor.front_door
+moon_phase_entity: sensor.moon_phase
+# Optional: Manual Dark/Light Mode Toggle
+theme_entity: input_select.theme
 # Optional: Your custom images (transparent PNGs recommended)
 day: /local/images/my-house-day.png
 night: /local/images/my-house-night.png
+# Optional: Change house image based on a door sensor
+door_entity: binary_sensor.front_door
 # Optional: Alternate images when door is open
 door_open_day: /local/images/house-open-day.png
 door_open_night: /local/images/house-open-night.png
-# Optional: Manual Dark/Light Mode Toggle
-theme_entity: input_select.theme
 ```
 
 ### How to use the Dark/Light Mode Toggle
@@ -87,11 +88,9 @@ When this helper is set to "dark", the card will render night visuals (stars, da
 
 You can create a personalized 3D-style image for this card using AI image generators (like Midjourney or DALL-E 3) without needing 3D modeling skills.
 
-### 1. Capture a Reference
-Take a clear photo of your house or the specific area you want to display. Aim for a wide shot that shows the overall layout. Taking the photo from a corner usually helps the AI understand the perspective and depth better.
+**1. Capture a Reference:** Take a clear photo of your house or the specific area you want to display. Aim for a wide shot that shows the overall layout. Taking the photo from a corner usually helps the AI understand the perspective and depth better.
 
-### 2. Generate the Image
-Use a prompt that focuses on a "clean model" aesthetic. You can use the template below, adjusting the description to match your specific home layout.
+**2. Generate the Image:** Use a prompt that focuses on a "clean model" aesthetic. You can use the template below, adjusting the description to match your specific home layout.
 
 **Prompt Template:**
 Isometric view of a modern minimalist architectural model section from the outside. [Describe your specific floors or rooms here]. Materials are matte white and light wood only. No complex textures, studio lighting, very clean, simplified shapes.
@@ -99,5 +98,5 @@ Isometric view of a modern minimalist architectural model section from the outsi
 
 ## Troubleshooting
 * **Card is blank?** Make sure you have refreshed your browser cache.
-* **Visuals look pixelated?** This is intentional to save battery. Increase `MAX_DPR` in the code if you want it sharper.
+* **Visuals look pixelated?** This is intentional for performance. I want to focus on stability first and increase the visuals gradually.
 * **Dark Mode:** This card looks best when your dashboard theme is set to **Dark Mode**, as the particle effects (stars, rain) stand out better.
