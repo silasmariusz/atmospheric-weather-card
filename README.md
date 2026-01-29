@@ -2,10 +2,7 @@
 
 
 > **AI-DISCLAIMER:**
-> This is basically one giant block of AI-generated JavaScript. It’s self-contained, dependency-free, and runs with toned down visuals by default. While it features a ridiculously complex weather engine, most of the actual human effort went into performance tuning to make sure it runs fast. So it’s optimized and should run pretty stable.
-
-## Info
-This started as a simple quest for a weather card that looks nice. It... escalated. What began as a few animated raindrops turned into a massive, single-file JavaScript monster containing its own physics engine. I wanted my dashboard to feel alive, so I didn't stop at 'rain.' I added procedural lightning generation, wind simulation that blows leaves across your screen, dynamic cloud layers that drift with parallax, and accurate moon phases. It is definitely over-engineered and probably overkill for a smart home dashboard. But that was exactly the point.
+> This card was created with the help of AI.
 
 | Night View | Day View |
 | :---: | :---: |
@@ -60,6 +57,8 @@ To get the full effect with your own home image and moon phases:
 ```yaml
 type: custom:atmospheric-weather-card
 weather_entity: weather.forecast_home
+# Optional: Full width mode
+full_width: true
 # Optional: Shows accurate moon phases on clear nights
 moon_phase_entity: sensor.moon_phase 
 # Optional: Change house image based on a door sensor
