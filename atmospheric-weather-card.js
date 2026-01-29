@@ -65,7 +65,7 @@ const PERFORMANCE_CONFIG = Object.freeze({
     RESIZE_DEBOUNCE_MS: 150,        // Debounce delay for particle reinitialization
     VISIBILITY_THRESHOLD: 0.01,     // IntersectionObserver threshold (1% visible)
     REVEAL_TRANSITION_MS: 300,      // Fade-in duration after initialization
-    MAX_DPR: 1.5,                   // OPTIMIZED: Reduced from 2 to 1.5 (Massive performance gain)
+    MAX_DPR: 2.0,                   // OPTIMIZED: Reduced from 2 to 1.5 (Massive performance gain)
     TARGET_FPS: 30                  // OPTIMIZED: Target 30fps instead of 60/120fps
 });
 
@@ -509,13 +509,12 @@ class AtmosphericWeatherCard extends HTMLElement {
             }
             
             canvas { 
-                position: absolute; 
-                top: 0; 
-                left: 0; 
-                width: 100%; 
-                height: 100%; 
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
                 pointer-events: none;
-                
                 --mask-vertical: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
                 --mask-horizontal: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
                 -webkit-mask-image: var(--mask-vertical), var(--mask-horizontal);
@@ -568,7 +567,7 @@ class AtmosphericWeatherCard extends HTMLElement {
         // Get canvas contexts with optimization hints
         const ctxOptions = { 
             alpha: true, 
-            desynchronized: true,
+            // desynchronized: true,
             willReadFrequently: false 
         };
         
