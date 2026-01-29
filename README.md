@@ -62,7 +62,7 @@ type: custom:atmospheric-weather-card
 weather_entity: weather.forecast_home
 # Optional: Shows accurate moon phases on clear nights
 moon_phase_entity: sensor.moon_phase 
-# Optional: Change background based on a door sensor (e.g. lights on inside)
+# Optional: Change house image based on a door sensor
 door_entity: binary_sensor.front_door
 # Optional: Your custom images (transparent PNGs recommended)
 day: /local/images/my-house-day.png
