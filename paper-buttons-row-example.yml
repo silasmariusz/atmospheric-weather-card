@@ -4,7 +4,6 @@ styles:
   justify-content: flex-start
   align-items: flex-start
   grid-gap: 12px
-  margin: 0px
   padding: 24px 0px 0px 0px
   z-index: 3
 base_config:
@@ -16,23 +15,15 @@ base_config:
       border-radius: var(--ha-card-border-radius, 12px)
       background-color: transparent
       box-shadow: var(--ha-card-box-shadow, 0px 2px 4px rgba(0,0,0,0.1))
-      transition: all 0.3s ease-in-out
       backdrop-filter: blur(12px) contrast(80%)
     state:
       font-weight: 700
       font-size: 16px
       color: var(--primary-text-color)
-      white-space: nowrap
-      text-overflow: ellipsis
-      overflow: hidden
     name:
       font-weight: 700
       font-size: 16px
       color: var(--primary-text-color)
-      white-space: nowrap
-      text-overflow: ellipsis
-      overflow: hidden
-      max-width: 100px
       padding: 0px
     icon:
       "--mdc-icon-size": 20px
@@ -65,7 +56,6 @@ buttons:
           transform: rotate(180deg)
     styles:
       button:
-        backdrop-filter: blur(16px) contrast(100%)
         min-width: 60px
         height: 60px
         background-color: rgba(179, 192, 199, 0.4)
@@ -79,9 +69,7 @@ buttons:
     styles:
       button:
         z-index: 2
-        pointer-events: none
         background-color: rgba(227, 222, 214, 0.5)
-        box-shadow: none
         position: absolute
         top: 24px
         right: 0px
@@ -111,3 +99,4 @@ buttons:
       state:
         font-size: 12px
         color: white
+
