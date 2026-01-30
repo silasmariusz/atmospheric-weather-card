@@ -8,8 +8,8 @@
 | <img src="https://github.com/user-attachments/assets/878c8e41-04ed-4cf4-a09d-2c079a0f427a" width="400"> | <img src="https://github.com/user-attachments/assets/2a58f714-74ba-426e-8492-afdc541053e1" width="400"> |
 | <img src="https://github.com/user-attachments/assets/1570d86a-8d31-449e-85a1-0f0d081f28ac" width="400"> | <img width="408" height="284" alt="image" src="https://github.com/user-attachments/assets/b149b219-525a-452e-85b0-bc24cf89e2d3" />
 
-> **Info about the screenshots:** These images show a "finished" dashboard example. This card provides the **animated weather background and house image only**. The buttons you see floating on top are *not included*—they are separate cards (e.g., `paper-buttons-row`) that I placed over the weather card.
-
+> **About the screenshots:** These images display a complete dashboard layout. This component provides the **animated weather background and house visualization only**. The overlay buttons shown are separate elements; to replicate them, please refer to the included `paper-buttons-row-example.yml`.
+> 
 ## Technical Features
 * **Triple-Layer Canvas Engine:** Uses dedicated background, middle, and foreground layers to create a sense of depth between weather effects and your home image.
 * **Organic Cloud Generation:** Uses a custom generator to create unique, non-repeating cloud shapes including cumulus, stratus, and cirrus varieties.
@@ -17,10 +17,7 @@
 * **Dynamic Weather Physics:** Individual particles for rain, snow, and hail with custom physics for speed, turbulence, and wobbling.
 * **Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, airplanes, shooting stars and rare aurora borealis effects.
 * **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
-* **Performance Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag.
-
-## Performance
-This card is optimized to run smoothly on standard tablets and wall panels. Because HTML Canvas animations can be demanding on hardware, the visual effects and frame rate are intentionally toned down to prevent your Home Assistant dashboard from lagging or becoming unresponsive.
+* **Performance Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag. Because HTML Canvas animations can be demanding on hardware, the visual effects and frame rate are intentionally toned down to prevent your Home Assistant dashboard from lagging or becoming unresponsive.
 
 ## Installation
 
