@@ -117,6 +117,12 @@ You can create a personalized 3D-style image for this card using AI image genera
 **Prompt Template:**
 Isometric view of a modern minimalist architectural model section from the outside. [Describe your specific floors or rooms here]. Materials are matte white and light wood only. No complex textures, studio lighting, very clean, simplified shapes.
 
+
+### Adding Buttons
+To achieve the exact look in the screenshots (where buttons and weather data "float" over the weather visuals), you can add a `custom:paper-buttons-row` card **before** this weather card. 
+
+I have added a simplified card example to the repository which mimics the style in the screenshots. You can use the `offset` feature to achieve the overlay effect.
+
 ## Troubleshooting
 * **Card is blank?** Make sure you have refreshed your browser cache.
 * **Visuals look pixelated?** This is intentional for performance. I want to focus on stability first and increase the visuals gradually.
