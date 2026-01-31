@@ -13,7 +13,7 @@
 ## Technical Features
 * **Triple-Layer Canvas Engine:** Uses dedicated background, middle, and foreground layers to create a sense of depth between weather effects and your home image.
 * **Organic Cloud Generation:** Uses a custom generator to create unique, non-repeating cloud shapes including cumulus, stratus, and cirrus varieties.
-* **Smart Logic System:** Intelligent hierarchy determines Day/Night state (Theme > Sun > System) and handles status overrides for any entity type.
+* **Smart Logic System:** Intelligent hierarchy determines Day/Night state
 * **Dynamic Weather Physics:** Individual particles for rain, snow, and hail with custom physics for speed, turbulence, and wobbling.
 * **Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, airplanes, shooting stars and rare aurora borealis effects.
 * **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
@@ -60,12 +60,21 @@ full_width: true
 # Optional: Move the card via margins to overlap other elements (supports negative values)
 offset: "-50px 0px 0px 0px"
 
+# --- Visual Customization ---
+# Optional: Move Sun/Moon position (90 = default). 
+# Positive = Distance from Left. Negative (-90) = Distance from Right.
+sun_moon_x_position: -50
+# Optional: Vertical distance from top (90 = default)
+sun_moon_y_position: 40
+
 # --- Logic & Automation ---
-# Optional: Manual Dark/Light Mode Toggle (Priority 1)
+# Optional: Force "light" or "dark" mode manually (Priority 1)
+mode: auto
+# Optional: For theme-based automatic toggling (Priority 2)
 theme_entity: input_select.theme
-# Optional: For automatic day/night detection (Priority 2)
+# Optional: For automatic day/night detection (Priority 3)
 sun_entity: sun.sun
-# Optional: For accurate moon phases on clear nights
+# Optional: For accurate moon phases
 moon_phase_entity: sensor.moon_phase
 
 # --- Images ---
@@ -83,16 +92,23 @@ status_image_night: /local/images/house-open-night.png
 ## Feature Documentation
 
 ### Smart Day/Night Logic
-The card uses a 3-layer priority system to decide if it should render Night (stars) or Day (blue sky) effects.
+The card uses a strict 3-layer priority system to decide if it should render Night (stars) or Day (blue sky) effects. This ensures your weather effects (like rain color) always match the background.
 
-| Priority | Name | Config Entity | Logic |
+| Priority | Name | Config Option | Logic |
 | :--- | :--- | :--- | :--- |
-| **1** | **Manual** | `theme_entity` | If set to "Dark" or "Night", it overrides everything else. |
-| **2** | **Automation** | `sun_entity` | If defined (e.g. `sun.sun`), checks if sun is `below_horizon`. |
-| **3** | **System** | *(None)* | If neither is defined, checks if Home Assistant/Browser is in Dark Mode. |
+| **1** | **Manual Mode** | `mode` | If set to `light` or `dark`, it overrides **everything**. Perfect for fixed themes. |
+| **2** | **Theme Entity** | `theme_entity` | If the entity state is "Dark" or "Night", night visuals are applied. |
+| **3** | **Automation** | `sun_entity` | Fallback. Checks if sun is `below_horizon`. |
+
+### Celestial Positioning
+You can precisely control where the Sun and Moon appear to fit your specific background image.
+* **`sun_moon_x_position`**: Controls horizontal placement.
+    * **Positive (e.g., `90`)**: Measures pixels from the **Left**.
+    * **Negative (e.g., `-90`)**: Measures pixels from the **Right**.
+* **`sun_moon_y_position`**: Measures pixels from the **Top**.
 
 ### Generic Status Entity
-You can override the default house image based on **any** entity's state using `status_entity`. This is a flexible version of the previous "door sensor" logic.
+You can override the default house image based on **any** entity's state using `status_entity`.
 
 * **Trigger:** The image changes if the entity is in any active state: `on`, `open`, `unlocked`, `true`, `home`, `active`.
 
@@ -123,7 +139,6 @@ You can create a personalized 3D-style image for this card using AI image genera
 > Isometric view of a modern minimalist architectural model section from the outside on solid white background. [Describe your specific floors or rooms here]. Materials are matte white and light wood only. No complex textures, studio lighting, very clean, simplified shapes.
 
 **3. Remove the Background:** The card requires a transparent PNG so that clouds and stars are visible behind the house. Use a free tool like remove.bg or Photoshop to remove the background from your generated image. 
-
 
 ## Adding Buttons
 To achieve the exact look in the screenshots (where buttons and weather data "float" over the weather visuals), you can add a `custom:paper-buttons-row` card **before** this weather card.
