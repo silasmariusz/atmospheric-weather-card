@@ -1,11 +1,11 @@
 /**
  * ATMOSPHERIC WEATHER CARD
- * Version: 1.1
+ * Version: 1.2
  * * A custom Home Assistant card that renders animated weather effects.
  * * https://github.com/shpongledsummer/atmospheric-weather-card
  */
  
- console.info("%c ATMOSPHERIC-WEATHER-CARD %c V1.1", "color: white; background: #2980b9; font-weight: bold;", "color: #2980b9; background: white; font-weight: bold;");
+ console.info("%c ATMOSPHERIC-WEATHER-CARD %c V1.2", "color: white; background: #2980b9; font-weight: bold;", "color: #2980b9; background: white; font-weight: bold;");
 
 // ============================================================================
 // CONSTANTS & CONFIGURATION
@@ -67,12 +67,6 @@ const LIMITS = Object.freeze({
     MAX_MIST_WISPS: 15,
     MAX_SUN_CLOUDS: 5,
     MAX_MOON_CLOUDS: 4
-});
-
-// V4.1: Celestial body position constants - defined once for consistency
-const CELESTIAL_POSITION = Object.freeze({
-    x: 90,
-    y: 90
 });
 
 // V4.2: Performance configuration
@@ -607,61 +601,9 @@ class AtmosphericWeatherCard extends HTMLElement {
         }
         
         this._ctxs = { bg: bgCtx, mid: midCtx, fg: fgCtx };
-        this._updateBackgroundColor();
     }
 
-    // ========================================================================
-    // THEME/BACKGROUND DETECTION
-    // ========================================================================
-    _updateBackgroundColor() {
-        if (!this._elements?.root) return;
-        
-        try {
-            const computedStyle = getComputedStyle(this);
-            let bgColor = computedStyle.getPropertyValue('--card-background-color').trim() || '#e4e4e4';
-            
-            if (bgColor !== this._bgColor) {
-                this._bgColor = bgColor;
-                this._bgLuminance = this._calculateLuminance(bgColor);
-                this._isLightBackground = this._bgLuminance > 0.45;
-            }
-        } catch (e) {
-            // Fallback if getComputedStyle fails
-            this._isLightBackground = false;
-        }
-    }
 
-    _calculateLuminance(color) {
-        if (!color || typeof color !== 'string') return 0.5;
-        
-        let r, g, b;
-        
-        try {
-            if (color.startsWith('rgb')) {
-                const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-                if (match) {
-                    r = parseInt(match[1], 10) / 255;
-                    g = parseInt(match[2], 10) / 255;
-                    b = parseInt(match[3], 10) / 255;
-                } else {
-                    return 0.5;
-                }
-            } else {
-                let hex = color.replace('#', '');
-                if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-                if (hex.length !== 6) return 0.5;
-                r = parseInt(hex.substr(0, 2), 16) / 255;
-                g = parseInt(hex.substr(2, 2), 16) / 255;
-                b = parseInt(hex.substr(4, 2), 16) / 255;
-            }
-            
-            // sRGB luminance calculation
-            const toLinear = (c) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-            return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-        } catch (e) {
-            return 0.5;
-        }
-    }
 
     // ========================================================================
     // ENTITY HELPER METHODS WITH ERROR HANDLING
@@ -708,42 +650,70 @@ class AtmosphericWeatherCard extends HTMLElement {
     }
 
     // ========================================================================
-    // DAY / NIGHT DETECTION (Priority: Theme -> Sun -> System)
+    // MASTER DAY / NIGHT LOGIC (Hierarchy: Mode -> Theme -> Sun -> Default)
     // ========================================================================
     _calculateIsNight(hass) {
-        // 1. PRIORITY: THEME ENTITY (Manual Override)
-        // If the user defined a theme entity and it has a valid state, we obey it strictly.
+        // 1. PRIORITY: MANUAL MODE (YAML Force)
+        // Checks if 'mode: dark' or 'mode: light' is set in YAML
+        if (this._config.mode) {
+            const mode = this._config.mode.toLowerCase();
+            if (mode === 'dark' || mode === 'night') return true;
+            if (mode === 'light' || mode === 'day') return false;
+        }
+
+        // 2. PRIORITY: THEME ENTITY
+        // If a theme entity is defined, we check its state
         if (this._config.theme_entity) {
             const themeEntity = this._getEntityState(hass, this._config.theme_entity);
             if (themeEntity && themeEntity.state && themeEntity.state !== 'unavailable' && themeEntity.state !== 'unknown') {
                 const state = themeEntity.state.toLowerCase();
-                // Check if the state matches any of our "Night" keywords
                 return NIGHT_MODES.includes(state);
             }
         }
 
-        // 2. PRIORITY: SUN ENTITY (Automation)
-        // If no theme entity (or it's unavailable), we check the Sun.
+        // 3. PRIORITY: SUN ENTITY
+        // Standard sun check
         if (this._config.sun_entity) {
             const sunEntity = this._getEntityState(hass, this._config.sun_entity);
             if (sunEntity && sunEntity.state) {
-                // 'below_horizon' is the standard HA state for night
-                // We also check NIGHT_MODES just in case they use a custom sensor
                 const state = sunEntity.state.toLowerCase();
                 return state === 'below_horizon' || NIGHT_MODES.includes(state);
             }
         }
 
-        // 3. PRIORITY: SYSTEM FALLBACK (Browser/OS Preference)
-        // If neither entity is defined, we check if Home Assistant is in Dark Mode.
-        try {
-            const metaScheme = document.querySelector('meta[name="color-scheme"]');
-            return metaScheme ? metaScheme.getAttribute('content') === 'dark' : false;
-        } catch (e) {
-            return false; // Default to Day if everything fails
-        }
+        // 4. FALLBACK
+        // Default to Day (false) if nothing else is found
+        return false;
     }
-	
+
+
+    // ========================================================================
+    // CELESTIAL POSITION LOGIC
+    // ========================================================================
+    _getCelestialPosition(w) {
+        // Default values
+        const result = { x: 90, y: 90 };
+        
+        // 1. Horizontal Position (X) - RENAMED from sun_moon_position
+        if (this._config.sun_moon_x_position !== undefined) {
+            const posX = parseInt(this._config.sun_moon_x_position, 10);
+            if (!isNaN(posX)) {
+                // If positive, offset from left. If negative, offset from right.
+                result.x = posX >= 0 ? posX : w + posX;
+            }
+        }
+
+        // 2. Vertical Position (Y)
+        if (this._config.sun_moon_y_position !== undefined) {
+            const posY = parseInt(this._config.sun_moon_y_position, 10);
+            if (!isNaN(posY)) {
+                result.y = posY;
+            }
+        }
+        
+        return result;
+    }
+
 
     // ========================================================================
     // LOGIC: STATUS IMAGE (Generic Override)
@@ -1030,6 +1000,10 @@ class AtmosphericWeatherCard extends HTMLElement {
 
         // Safe boolean checks
         const isNight = this._calculateIsNight(hass);
+        
+        // FORCE LINK: If it's Night, we assume Dark Background (isLightBackground = false).
+        // If it's Day, we assume Light Background (isLightBackground = true).
+        this._isLightBackground = !isNight;
 
         // Safe attribute access with validation
         const windSpeedRaw = this._getEntityAttribute(wEntity, 'wind_speed', 0);
@@ -1114,7 +1088,6 @@ class AtmosphericWeatherCard extends HTMLElement {
             }
         }
         
-        this._updateBackgroundColor();
     }
 
     // ========================================================================
@@ -1487,10 +1460,14 @@ class AtmosphericWeatherCard extends HTMLElement {
     // Repositioned sun clouds - now 20px below sun with increased opacity
     _initSunClouds(w, h) {
         const count = Math.min(LIMITS.MAX_SUN_CLOUDS, 3 + Math.floor(Math.random() * 2));
-        const sunX = CELESTIAL_POSITION.x;
-        const sunY = CELESTIAL_POSITION.y;
+        
+        // NEW: Get dynamic position
+        const celestial = this._getCelestialPosition(w);
+        const sunX = celestial.x;
+        const sunY = celestial.y;
         
         for (let i = 0; i < count; i++) {
+            // ... rest of the loop remains exactly the same ...
             const seed = Math.random() * 10000;
             // Use special sun enhancement puffs for better visibility
             const puffs = CloudShapeGenerator.generateSunEnhancementPuffs(seed);
@@ -1526,13 +1503,16 @@ class AtmosphericWeatherCard extends HTMLElement {
             const seed = Math.random() * 10000;
             const puffs = CloudShapeGenerator.generateWispyPuffs(seed);
             
+            // Get dynamic position
+            const celestial = this._getCelestialPosition(w);
+            
             // Position clouds around/in front of moon
             const angle = (i / count) * Math.PI * 0.8 + Math.PI * 0.1 + (Math.random() - 0.5) * 0.4;
             const dist = 30 + Math.random() * 40;
             
             this._moonClouds.push({
-                x: CELESTIAL_POSITION.x + Math.cos(angle) * dist,
-                y: CELESTIAL_POSITION.y + Math.sin(angle) * dist,
+                x: celestial.x + Math.cos(angle) * dist, // UPDATED
+                y: celestial.y + Math.sin(angle) * dist, // UPDATED
                 scale: 0.4 + Math.random() * 0.3,
                 speed: 0.015 + Math.random() * 0.015,
                 puffs,
@@ -1667,8 +1647,10 @@ class AtmosphericWeatherCard extends HTMLElement {
         
         ctx.save();
         
-        const centerX = CELESTIAL_POSITION.x; 
-        const centerY = CELESTIAL_POSITION.y; 
+        // Dynamic Position
+        const celestial = this._getCelestialPosition(w);
+        const centerX = celestial.x; 
+        const centerY = celestial.y;
         
         const baseAngle = Math.PI * 0.2;
         const spread = Math.PI * 0.45;
@@ -1819,8 +1801,10 @@ class AtmosphericWeatherCard extends HTMLElement {
         
         ctx.save();
         
-        const centerX = CELESTIAL_POSITION.x;
-        const centerY = CELESTIAL_POSITION.y;
+        // Dynamic Position
+        const celestial = this._getCelestialPosition(w);
+        const centerX = celestial.x;
+        const centerY = celestial.y;
         
         // Outer atmospheric glow
         ctx.globalCompositeOperation = this._isLightBackground ? 'overlay' : 'lighter';
@@ -2666,9 +2650,10 @@ class AtmosphericWeatherCard extends HTMLElement {
         
         this._moonAnimPhase += 0.003;
         
-        // Use constant for consistent positioning
-        const moonX = CELESTIAL_POSITION.x;
-        const moonY = CELESTIAL_POSITION.y;
+        // Dynamic Position
+        const celestial = this._getCelestialPosition(w);
+        const moonX = celestial.x;
+        const moonY = celestial.y;
         const moonRadius = 18;
         
         const phase = this._moonPhaseConfig;
@@ -2971,7 +2956,8 @@ class AtmosphericWeatherCard extends HTMLElement {
         
         // Sun atmosphere (sunny days)
         if (this._shouldShowSun()) {
-            const sunGlow = mid.createRadialGradient(CELESTIAL_POSITION.x, 0, 0, CELESTIAL_POSITION.x, 0, w * 0.7);
+            const celestial = this._getCelestialPosition(w); // NEW
+            const sunGlow = mid.createRadialGradient(celestial.x, 0, 0, celestial.x, 0, w * 0.7); // UPDATED
             sunGlow.addColorStop(0, `rgba(255, 200, 100, ${0.12 * this._layerFadeProgress.effects})`);
             sunGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
             mid.fillStyle = sunGlow;
@@ -3099,9 +3085,12 @@ class AtmosphericWeatherCard extends HTMLElement {
     static getStubConfig() {
         return {
             weather_entity: 'weather.forecast_home',
+			mode: 'auto',
 			sun_entity: 'sun.sun',
             full_width: false,
 			offset: '0px',
+			sun_moon_x_position: 90,  // Positive=Left, Negative=Right
+            sun_moon_y_position: 90,  // From Top
             // Optional parameters:
             // moon_phase_entity: 'sensor.moon_phase',
             // day: '/local/community/atmospheric-weather-card/day.png',
