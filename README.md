@@ -92,7 +92,7 @@ status_image_night: /local/images/house-open-night.png
 ## Feature Documentation
 
 ### Smart Day/Night Logic
-The card uses a strict 3-layer priority system to decide if it should render Night (stars) or Day (blue sky) effects. This ensures your weather effects (like rain color) always match the background.
+The card uses a strict 3-layer priority system to decide if it should render Night (stars) or Day (blue sky) effects. This ensures your weather effects (like cloud color) always match the background.
 
 | Priority | Name | Config Option | Logic |
 | :--- | :--- | :--- | :--- |
@@ -101,7 +101,7 @@ The card uses a strict 3-layer priority system to decide if it should render Nig
 | **3** | **Automation** | `sun_entity` | Fallback. Checks if sun is `below_horizon`. |
 
 ### Celestial Positioning
-You can precisely control where the Sun and Moon appear to fit your specific background image.
+You can precisely control where the Sun and Moon appear.
 * **`sun_moon_x_position`**: Controls horizontal placement.
     * **Positive (e.g., `90`)**: Measures pixels from the **Left**.
     * **Negative (e.g., `-90`)**: Measures pixels from the **Right**.
