@@ -11,13 +11,11 @@
 > **About the screenshots:** These images display a complete dashboard layout. This component provides the **animated weather background and house visualization only**. The overlay buttons shown are separate elements; to replicate them, please refer to the included `paper-buttons-row-example.yml`.
 
 ## Technical Features
-* **Triple-Layer Canvas Engine:** Uses dedicated background, middle, and foreground layers to create a sense of depth between weather effects and your home image.
-* **Organic Cloud Generation:** Uses a custom generator to create unique, non-repeating cloud shapes including cumulus, stratus, and cirrus varieties.
-* **Smart Logic System:** Intelligent hierarchy determines Day/Night state
 * **Dynamic Weather Physics:** Individual particles for rain, snow, and hail with custom physics for speed, turbulence, and wobbling.
 * **Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, airplanes, shooting stars and rare aurora borealis effects.
+* **Organic Cloud Generation:** Uses a custom generator to create unique, non-repeating cloud shapes.
 * **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
-* **Performance Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag, as HTML Canvas animations can be demanding on hardware.
+* **Performance Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag.
 
 ## Installation
 
@@ -92,7 +90,7 @@ status_image_night: /local/images/house-open-night.png
 ## Feature Documentation
 
 ### Smart Day/Night Logic
-The card uses a strict 3-layer priority system to decide if it should render Night (stars) or Day (blue sky) effects. This ensures your weather effects (like cloud color) always match the background.
+The card uses a strict 3-layer priority system to decide if it should render Night (stars, darker clouds) or Day (lighter clouds, sun) effects. This ensures your weather effects (like cloud color) always match the background.
 
 | Priority | Name | Config Option | Logic |
 | :--- | :--- | :--- | :--- |
