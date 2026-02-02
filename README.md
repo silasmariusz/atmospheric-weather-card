@@ -17,7 +17,7 @@
 * **Dynamic Weather Physics:** Individual particles for rain, snow, and hail with custom physics for speed, turbulence, and wobbling.
 * **Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, airplanes, shooting stars and rare aurora borealis effects.
 * **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
-* **Performance Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag. Because HTML Canvas animations can be demanding on hardware, the visual effects and frame rate are intentionally toned down to prevent your Home Assistant dashboard from lagging or becoming unresponsive.
+* **Performance Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag, as HTML Canvas animations can be demanding on hardware.
 
 ## Installation
 
@@ -129,7 +129,7 @@ You can control the exact positioning of the card using the `offset` option. Thi
 
 ## Custom House Image Generation
 
-You can create a personalized 3D-style image for this card using AI image generators (like Midjourney or DALL-E 3) without needing 3D modeling skills.
+You can create a personalized 3D-style image for this card using AI image generators.
 
 **1. Capture a Reference:** Take a clear photo of your house or the specific area you want to display. Aim for a wide shot that shows the overall layout. Taking the photo from a corner usually helps the AI understand the perspective and depth better.
 
@@ -143,8 +143,4 @@ You can create a personalized 3D-style image for this card using AI image genera
 ## Adding Buttons
 To achieve the exact look in the screenshots (where buttons and weather data "float" over the weather visuals), you can add a `custom:paper-buttons-row` card **before** this weather card.
 
-I have added a simplified card example to the repository which mimics the style in the screenshots. You can use the `offset` feature to achieve the overlay effect.
-
-## Troubleshooting
-* **Card is blank?** Make sure you have refreshed your browser cache.
-* **Visuals look pixelated?** This is intentional for performance. I want to focus on stability first and increase the visuals gradually.
+There's a simplified card example in the repository which mimics the style in the screenshots. You can use the `offset` feature to achieve the overlay effect.
