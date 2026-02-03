@@ -4,7 +4,7 @@
  * A custom Home Assistant card that renders animated weather effects.
  */
  
- console.info("%c ATMOSPHERIC-WEATHER-CARD %c V1.4", "color: white; background: #2980b9; font-weight: bold;", "color: #2980b9; background: white; font-weight: bold;");
+ console.info("%c ATMOSPHERIC-WEATHER-CARD %c V1.5", "color: white; background: #2980b9; font-weight: bold;", "color: #2980b9; background: white; font-weight: bold;");
 
 // ============================================================================
 // #region 1. CONSTANTS & CONFIGURATION
@@ -64,7 +64,7 @@ const LIMITS = Object.freeze({
     MAX_DUST: 40,
     MAX_MIST_WISPS: 15,
     MAX_SUN_CLOUDS: 5,
-    MAX_MOON_CLOUDS: 4
+    MAX_MOON_CLOUDS: 5
 });
 
 // Performance configuration
@@ -799,11 +799,13 @@ class AtmosphericWeatherCard extends HTMLElement {
         // Set up ResizeObserver with debounced handling
         if (!this._resizeObserver) {
             this._resizeObserver = new ResizeObserver((entries) => {
-                // Immediately update canvas dimensions (cheap operation)
-                this._updateCanvasDimensions();
+                // FIX: Only re-init particles if size ACTUALLY changed.
+                // This stops the "Pop" on load.
+                const changed = this._updateCanvasDimensions();
                 
-                // Debounce the expensive particle reinitialization
-                this._scheduleParticleReinit();
+                if (changed) {
+                    this._scheduleParticleReinit();
+                }
             });
         }
         
@@ -959,8 +961,8 @@ class AtmosphericWeatherCard extends HTMLElement {
         let weatherState = (wEntity.state || 'default').toLowerCase();
 
         // Swap Sunny/Clear-Night based on actual Day/Night mode
-        if (this._isNight && weatherState === 'sunny') weatherState = 'clear-night';
-        if (!this._isNight && weatherState === 'clear-night') weatherState = 'sunny';
+        if (isNight && weatherState === 'sunny') weatherState = 'clear-night';
+        if (!isNight && weatherState === 'clear-night') weatherState = 'sunny';
 
         if (this._lastState !== weatherState || this._isNight !== isNight) {
             const prevState = this._lastState;
@@ -1186,10 +1188,10 @@ class AtmosphericWeatherCard extends HTMLElement {
     }
     
     _updateCanvasDimensions() {
-        if (!this._elements?.root || !this._ctxs) return;
+        if (!this._elements?.root || !this._ctxs) return false;
         
         const rect = this._elements.root.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) return;
+        if (rect.width === 0 || rect.height === 0) return false;
         
         const dpr = Math.min(window.devicePixelRatio || 1, PERFORMANCE_CONFIG.MAX_DPR);
         const scaledWidth = Math.floor(rect.width * dpr);
@@ -1201,7 +1203,7 @@ class AtmosphericWeatherCard extends HTMLElement {
             this._cachedDimensions.height !== scaledHeight ||
             this._cachedDimensions.dpr !== dpr;
         
-        if (!dimensionsChanged) return;
+        if (!dimensionsChanged) return false;
         
         // Update cached dimensions
         this._cachedDimensions = { width: scaledWidth, height: scaledHeight, dpr };
@@ -1227,6 +1229,8 @@ class AtmosphericWeatherCard extends HTMLElement {
             this._renderGate.hasValidDimensions = true;
             this._checkRenderGate();
         }
+        
+        return true;
     }
     
     _scheduleParticleReinit() {
@@ -1761,26 +1765,38 @@ class AtmosphericWeatherCard extends HTMLElement {
         }
     }
 
-    // Moon clouds for cloudy nights
+    // Moon clouds for cloudy nights - NOW WITH TEXTURE
     _initMoonClouds(w, h) {
+        // 1. MORE CLOUDS:
+        // Increase base count. Even "Partly Cloudy" will now have ~4-5 clouds.
+        // Full cloudy will hit the new max of 8.
         const cloudiness = Math.min((this._params?.cloud || 0) / 40, 1);
-        const count = Math.min(LIMITS.MAX_MOON_CLOUDS, 1 + Math.floor(cloudiness * 3));
+        const count = Math.min(LIMITS.MAX_MOON_CLOUDS, 3 + Math.floor(cloudiness * 5));
         
         for (let i = 0; i < count; i++) {
             const seed = Math.random() * 10000;
-            const puffs = CloudShapeGenerator.generateWispyPuffs(seed);
             
-            // Get dynamic position
+            // Alternate shapes (Organic vs Wispy)
+            const puffs = (i % 2 === 0) 
+                ? CloudShapeGenerator.generateOrganicPuffs(false, seed) 
+                : CloudShapeGenerator.generateWispyPuffs(seed);
+            
             const celestial = this._getCelestialPosition(w);
             
-            // Position clouds around/in front of moon
-            const angle = (i / count) * Math.PI * 0.8 + Math.PI * 0.1 + (Math.random() - 0.5) * 0.4;
-            const dist = 30 + Math.random() * 40;
+            // 2. BETTER POSITIONING:
+            // Spread them wider so they don't clump (0.4 -> 0.7 angle spread)
+            const angle = (i / count) * Math.PI * 0.7 + Math.PI * 0.15 + (Math.random() - 0.5) * 0.5;
+            const dist = 30 + Math.random() * 50;
             
             this._moonClouds.push({
                 x: celestial.x + Math.cos(angle) * dist,
                 y: celestial.y + Math.sin(angle) * dist,
-                scale: 0.4 + Math.random() * 0.3,
+                
+                // 3. DRAMATIC SCALE:
+                // Doubled the size! (Was 0.3-0.5 -> Now 0.6-1.1)
+                // This makes them feel like "structures" rather than specks.
+                scale: (i % 2 === 0) ? 0.6 + Math.random() * 0.4 : 0.7 + Math.random() * 0.4,
+                
                 speed: 0.015 + Math.random() * 0.015,
                 puffs,
                 opacity: 0.3 + cloudiness * 0.3,
@@ -2278,25 +2294,26 @@ class AtmosphericWeatherCard extends HTMLElement {
     }
 
     _getCloudColors(cloud) {
-        // --- 1. SCUD LAYER OVERRIDE (Layer 5) ---
-        // Fast, low clouds which need to be darker/denser so they stand out 
-        // against the main cloud background.
+        // --- 1. SCUD LAYER OVERRIDE (Layer 5 - Fast Clouds) ---
+        // We handle this first to ensure they don't look like white stickers at night
         if (cloud.layer === 5) {
             if (this._isLightBackground) {
-                // DAY: BALANCED GREY (Visible but not smoke)
+                // DAY: 5% Darker/Higher Contrast as requested
                 return {
-                    lit: [225, 235, 245],    // Brighter highlight
-                    mid: [195, 205, 220],    // Brighter midtone
-                    shadow: [165, 175, 195], // Brighter shadow
+                    lit: [230, 240, 250],    
+                    mid: [190, 205, 225],    
+                    shadow: [150, 165, 190], // Deep blue-grey shadow
                     ambient: 0.9
                 };
             } else {
-                // NIGHT: BRIGHT SILVER
+                // NIGHT: "Ghost Mode" (Barely visible motion)
+                // This answers your request to make them "clearly differently colored"
+                // They are now dark silhouettes rather than bright clouds.
                 return {
-                    lit: [200, 210, 230],    
-                    mid: [160, 170, 190],    
-                    shadow: [120, 130, 150], 
-                    ambient: 0.95            
+                    lit: [55, 65, 80],       
+                    mid: [35, 45, 60],       
+                    shadow: [15, 20, 30],    
+                    ambient: 0.3             // Very transparent
                 };
             }
         }
@@ -2304,61 +2321,58 @@ class AtmosphericWeatherCard extends HTMLElement {
         const isNightCloud = this._isNight && (this._params?.cloud || 0) < 5;
         const p = this._params;
         
-        // Helper: Check for "Bad Weather" (Rain, Hail, Fog, Lightning, Storms)
-        // Check for the 'dark' flag OR specific weather types you listed.
+        // Helper for Bad Weather
         const isBadWeather = p?.dark || 
                              ['rain', 'hail', 'fog', 'lightning', 'lightning-rainy', 'pouring', 'rainy', 'snowy-rainy'].includes(p?.type) || 
                              p?.foggy;
 
-        // 1. NIGHT (Standard - Unchanged)
-        if (isNightCloud) {
-            return {
-                lit: [50, 60, 85],
-                mid: [40, 50, 70],
-                shadow: [25, 32, 50],
-                ambient: 0.15
-            };
-        }
-
-        // 2. BAD WEATHER (Rainy, Lightning, Fog, Hail)
-        // TARGET: High contrast, but GREYER (Neutral), Less Blue.
-        if (isBadWeather) {
-            if (this._isLightBackground) {
-                return {
-                    lit: [242, 248, 255],
-                    mid: [208, 212, 225],
-                    shadow: [168, 178, 198],
-                    ambient: 0.80
-                };
-            }
-            // Night Bad Weather
-            return {
-                lit: [150, 155, 165],
-                mid: [120, 125, 140],
-                shadow: [90, 95, 115],
-                ambient: 0.75
-            };
-        }
-
-
-        // 3. GOOD WEATHER (Cloudy, Partly Cloudy)
-        if (this._isLightBackground) {
-            return {
-                lit: [255, 255, 255],
-                mid: [228, 236, 245],
-                shadow: [185, 198, 215],
-                ambient: 0.8
-            };
-        }
-
-
-        // 4. NIGHT STANDARD
+        // 2. NIGHT (Standard Background Clouds) - BRIGHTER FIX
         if (this._isNight) {
             return {
-                lit: [220, 230, 255],
-                mid: [140, 155, 185],
-                shadow: [30, 40, 60],
-                ambient: 0.8
+                // LIT: Boosted by ~8% (138 -> 150)
+                // This gives them a stronger "moonlit silver" look
+                lit: [150, 165, 190],   
+                
+                // MID: Boosted by ~8% (75 -> 82)
+                // Keeps the body visible against the black sky
+                mid: [75, 85, 105],      
+                
+                // SHADOW: Slight bump, but kept dark (12 -> 14)
+                // We must keep this low to preserve the 3D curve
+                shadow: [14, 16, 25],   
+                
+                // AMBIENT: 0.85 (Unchanged)
+                ambient: 0.85            
+            };
+        }
+
+        // 3. BAD WEATHER (Day/Night)
+        if (isBadWeather) {
+            if (this._isLightBackground) {
+                // Day Storm: Darker grey
+                return {
+                    lit: [230, 235, 240],
+                    mid: [195, 200, 210],
+                    shadow: [155, 165, 180],
+                    ambient: 0.85
+                };
+            }
+            // Night Storm
+            return {
+                lit: [90, 95, 105],
+                mid: [60, 65, 75],
+                shadow: [30, 35, 45],
+                ambient: 0.6
+            };
+        }
+
+        // 4. DAY STANDARD (Good Weather) - 5% DARKER CONTRAST
+        if (this._isLightBackground) {
+            return {
+                lit: [255, 255, 255],    // Keep highlights bright white
+                mid: [215, 228, 240],    // Darker midtone (Was ~228+)
+                shadow: [165, 180, 205], // Much deeper shadow (Was ~185+)
+                ambient: 0.85            // Slight boost to emphasis the contrast
             };
         }
 
@@ -2792,9 +2806,9 @@ class AtmosphericWeatherCard extends HTMLElement {
         });
     }
 
-    // COMETS (Slower, Majestic, with Trail History)
+    // COMETS (Compact, High-Altitude, Tapered Tail)
     _drawComets(ctx, w, h) {
-        // --- 1. SPAWN LOGIC (Controls the Speed) ---
+        // --- 1. SPAWN LOGIC ---
         const p = this._params;
         const badWeather = ['rain', 'hail', 'lightning', 'pouring', 'snowy', 'snowy-rainy'].includes(p.type);
         
@@ -2803,23 +2817,21 @@ class AtmosphericWeatherCard extends HTMLElement {
             const startX = Math.random() < 0.5 ? -60 : w + 60;
             const dir = startX < 0 ? 1 : -1;
             
-            // SPEED TWEAK: 
-            // set to ~2.5 px/frame. (Shooting stars are ~25). 
-            // This creates the "fine adjustment" you wanted.
             const speed = 2.2 + Math.random() * 1.3; 
             
             this._comets.push({
                 x: startX,
+                // CONSTRAINT: STRICTLY Top 40% of sky.
                 y: Math.random() * (h * 0.4),
                 vx: speed * dir,
-                vy: speed * 0.3, // Shallow downward angle
+                vy: speed * 0.15,
                 size: 1.5 + Math.random(), 
-                life: 1.2,       // Start with extra life so it fades later
-                tail: []         // Init empty tail
+                life: 1.2,       
+                tail: []         
             });
         }
 
-        // --- 2. DRAW LOGIC (Your Code) ---
+        // --- 2. DRAW LOGIC ---
         const fadeOpacity = this._layerFadeProgress.stars;
         if (fadeOpacity <= 0) return;
 
@@ -2829,42 +2841,43 @@ class AtmosphericWeatherCard extends HTMLElement {
                 
                 c.x += c.vx;
                 c.y += c.vy;
-                
-                // DECAY TWEAK: Lowered slightly (0.006 -> 0.005) 
-                // so it survives the slower journey across the screen.
                 c.life -= 0.005; 
                 
                 c.tail.unshift({ x: c.x, y: c.y });
-                // Limit tail length so it doesn't get infinite
-                if (c.tail.length > 60) c.tail.pop();
+
+                // Just slightly longer than shooting stars (22).
+                if (c.tail.length > 30) c.tail.pop();
                 
-                if (c.life <= 0 || c.x < -120 || c.x > w + 120 || c.y > h + 120) {
+                if (c.life <= 0 || c.x < -100 || c.x > w + 100) {
                     this._comets.splice(i, 1);
                     continue;
                 }
                 
                 const opacity = Math.min(1, c.life) * fadeOpacity;
                 
-                // Head with coma
-                const headGrad = CanvasUtils.createRadialGradient(ctx, c.x, c.y, c.size * 3, [
-                    { stop: 0, color: `rgba(255, 255, 255, ${opacity})` },
-                    { stop: 0.3, color: `rgba(200, 230, 255, ${opacity * 0.6})` },
-                    { stop: 1, color: 'rgba(150, 200, 255, 0)' }
+                // Head (Blue-ish Tint for distinction)
+                const headGrad = CanvasUtils.createRadialGradient(ctx, c.x, c.y, c.size * 4, [
+                    { stop: 0, color: `rgba(220, 240, 255, ${opacity})` },
+                    { stop: 0.4, color: `rgba(100, 200, 255, ${opacity * 0.4})` },
+                    { stop: 1, color: 'rgba(100, 200, 255, 0)' }
                 ]);
+                CanvasUtils.fillCircle(ctx, c.x, c.y, c.size * 4, headGrad);
                 
-                CanvasUtils.fillCircle(ctx, c.x, c.y, c.size * 3, headGrad);
-                
-                // Tail (Your implementation)
-                ctx.lineWidth = c.size;
-                ctx.lineCap = 'round'; // Added for smoother segments
+                // Tail Loop
+                ctx.lineCap = 'round'; 
                 
                 for (let j = 0; j < c.tail.length - 1; j++) {
                     const p1 = c.tail[j];
                     const p2 = c.tail[j + 1];
-                    // Fade tail out towards the end
-                    const tailOp = opacity * (1 - j / c.tail.length) * 0.5;
+                    const progress = j / c.tail.length;
                     
-                    ctx.strokeStyle = `rgba(180, 210, 255, ${tailOp})`;
+                    // Tapering Width
+                    // The line gets thinner further back in the tail.
+                    ctx.lineWidth = c.size * (1 - progress * 0.8);
+                    
+                    const tailOp = opacity * (1 - progress) * 0.6;
+                    
+                    ctx.strokeStyle = `rgba(160, 210, 255, ${tailOp})`;
                     ctx.beginPath();
                     ctx.moveTo(p1.x, p1.y);
                     ctx.lineTo(p2.x, p2.y);
@@ -2962,17 +2975,15 @@ class AtmosphericWeatherCard extends HTMLElement {
 	
 	// BIRDS (Updated: Always appear unless severe weather)
     _drawBirds(ctx, w, h) {
-        // 0. EXCLUSIVITY CHECK
-        // If planes are currently active, do not spawn birds.
         if (this._planes && this._planes.length > 0) return;
 
-        // 1. SPAWN LOGIC
         const p = this._params;
         
-        // Only exclude "Very Bad" weather (Hail & Lightning)
-        const isSevereWeather = ['hail', 'lightning', 'lightning-rainy'].includes(p.type);
+        // FIX: Check 'thunder' flag and 'hail' type correctly.
+        // The old code checked for 'lightning' string, which doesn't exist in p.type.
+        const isSevereWeather = p.thunder || p.type === 'hail' || p.type === 'pouring';
         
-        // Logic: If it's not severe weather AND there are no birds, spawn them IMMEDIATELY.
+        // Spawn Logic
         if (!isSevereWeather && this._birds.length === 0) {
             
             // LOGIC: 30% chance of Single Bird, 70% chance of Flock
@@ -3168,14 +3179,14 @@ class AtmosphericWeatherCard extends HTMLElement {
         }
     }
 
-    // MOON WITH ACCURATE PHASE RENDERING
+    // MOON WITH BLOCKER, VISIBLE CRATERS & ENHANCED GLOW
     _drawMoon(ctx, w, h) {
         if (!this._isNight) return;
         
-        // Don't draw until state is initialized to prevent position pop
+        // 1. Safety Checks (Prevent Pop)
         if (!this._stateInitialized || !this._renderGate.isRevealed) return;
         
-        // Moon visible in all night conditions, but may be partially obscured
+        // 2. Visibility Logic
         const cloudCover = this._params?.cloud || 0;
         const moonVisibility = cloudCover > 30 ? 0.4 : cloudCover > 20 ? 0.6 : cloudCover > 10 ? 0.8 : 1;
         
@@ -3184,52 +3195,60 @@ class AtmosphericWeatherCard extends HTMLElement {
         
         this._moonAnimPhase += 0.003;
         
-        // Dynamic Position
+        // 3. Position & Phase
         const celestial = this._getCelestialPosition(w);
         const moonX = celestial.x;
         const moonY = celestial.y;
         const moonRadius = 18;
-        
         const phase = this._moonPhaseConfig;
         
         CanvasUtils.withState(ctx, () => {
-            // Outer glow (varies with phase)
-            const glowIntensity = 0.08 + phase.illumination * 0.12;
-            ctx.globalCompositeOperation = 'lighter';
-            const glowGrad = CanvasUtils.createRadialGradient(ctx, moonX, moonY, moonRadius * 4, [
-                { stop: 0, color: `rgba(200, 220, 255, ${glowIntensity * fadeOpacity})` },
-                { stop: 0.3, color: `rgba(180, 200, 240, ${glowIntensity * 0.5 * fadeOpacity})` },
+            // --- A. ATMOSPHERIC GLOW ---
+            const glowIntensity = 0.22 + phase.illumination * 0.15;
+            
+            ctx.globalCompositeOperation = 'screen'; 
+            const glowGrad = CanvasUtils.createRadialGradient(ctx, moonX, moonY, moonRadius * 5.5, [
+                // Stop 0: Hotter core
+                { stop: 0, color: `rgba(180, 200, 255, ${glowIntensity * fadeOpacity})` },
+                
+                // Stop 0.5: Faster falloff to prevent edge clipping
+                { stop: 0.5, color: `rgba(160, 190, 240, ${glowIntensity * 0.3 * fadeOpacity})` },
+                
                 { stop: 1, color: 'rgba(150, 180, 220, 0)' }
             ]);
-            CanvasUtils.fillCircle(ctx, moonX, moonY, moonRadius * 4, glowGrad);
+            CanvasUtils.fillCircle(ctx, moonX, moonY, moonRadius * 5.5, glowGrad);
             
-            // Moon body - base circle
+            // Reset composite operation for the solid moon body
             ctx.globalCompositeOperation = 'source-over';
+
+            // --- B. STAR BLOCKER (The Fix) ---
+            // Draw a solid dark circle first. This physically covers the stars behind the moon.
+            if (phase.illumination > 0) {
+                ctx.fillStyle = `rgba(25, 30, 40, ${fadeOpacity})`; 
+                ctx.beginPath();
+                ctx.arc(moonX, moonY, moonRadius - 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
             
-            // Create clipping region for moon
+            // --- C. MOON BODY (Clipped) ---
             ctx.save();
             ctx.beginPath();
             ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
             ctx.clip();
             
-            // Draw the lit portion based on phase
             const illumination = phase.illumination;
             const direction = phase.direction;
             
             if (illumination <= 0) {
-                // New moon - very faint outline
-                ctx.fillStyle = `rgba(40, 45, 55, ${0.3 * fadeOpacity})`;
-                ctx.beginPath();
-                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
-                ctx.fill();
+                // New Moon (Dark)
+                ctx.fillStyle = `rgba(40, 45, 55, ${0.8 * fadeOpacity})`; 
+                ctx.beginPath(); ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2); ctx.fill();
                 
-                // Subtle earthshine
+                // Earthshine
                 ctx.fillStyle = `rgba(80, 90, 110, ${0.15 * fadeOpacity})`;
-                ctx.beginPath();
-                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2); ctx.fill();
             } else if (illumination >= 1) {
-                // Full moon
+                // Full Moon (Bright)
                 const moonGrad = CanvasUtils.createHighlightGradient(
                     ctx, moonX, moonY, moonRadius,
                     -moonRadius * 0.3, -moonRadius * 0.3,
@@ -3239,50 +3258,28 @@ class AtmosphericWeatherCard extends HTMLElement {
                         { stop: 1, color: `rgba(200, 210, 230, ${0.85 * fadeOpacity})` }
                     ]
                 );
-                
                 CanvasUtils.fillCircle(ctx, moonX, moonY, moonRadius, moonGrad);
             } else {
-                // Partial phases - crescent, quarter, gibbous
+                // Partial Phases
+                // 1. Draw Dark Side
+                ctx.fillStyle = `rgba(35, 40, 50, ${0.9 * fadeOpacity})`; 
+                ctx.beginPath(); ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2); ctx.fill();
                 
-                // First draw the dark side
-                ctx.fillStyle = `rgba(35, 40, 50, ${0.4 * fadeOpacity})`;
-                ctx.beginPath();
-                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Subtle earthshine on dark side
-                ctx.fillStyle = `rgba(60, 70, 90, ${0.12 * fadeOpacity})`;
-                ctx.beginPath();
-                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Now draw the lit portion
-                ctx.beginPath();
-                
-                // The terminator (line between light and dark) is an ellipse
+                // 2. Draw Lit Side shape
                 const terminatorWidth = Math.abs(1 - illumination * 2) * moonRadius;
                 const isGibbous = illumination > 0.5;
                 
-                if (direction === 'right') {
-                    // Waxing
+                ctx.beginPath();
+                if (direction === 'right') { // Waxing
                     ctx.arc(moonX, moonY, moonRadius, -Math.PI / 2, Math.PI / 2, false);
-                    if (isGibbous) {
-                        ctx.ellipse(moonX, moonY, terminatorWidth, moonRadius, 0, Math.PI / 2, -Math.PI / 2, false);
-                    } else {
-                        ctx.ellipse(moonX, moonY, terminatorWidth, moonRadius, 0, Math.PI / 2, -Math.PI / 2, true);
-                    }
-                } else {
-                    // Waning
+                    ctx.ellipse(moonX, moonY, terminatorWidth, moonRadius, 0, Math.PI / 2, -Math.PI / 2, !isGibbous);
+                } else { // Waning
                     ctx.arc(moonX, moonY, moonRadius, Math.PI / 2, -Math.PI / 2, false);
-                    if (isGibbous) {
-                        ctx.ellipse(moonX, moonY, terminatorWidth, moonRadius, 0, -Math.PI / 2, Math.PI / 2, false);
-                    } else {
-                        ctx.ellipse(moonX, moonY, terminatorWidth, moonRadius, 0, -Math.PI / 2, Math.PI / 2, true);
-                    }
+                    ctx.ellipse(moonX, moonY, terminatorWidth, moonRadius, 0, -Math.PI / 2, Math.PI / 2, !isGibbous);
                 }
                 ctx.closePath();
                 
-                // Fill with moon gradient
+                // 3. Fill Lit Side
                 const moonGrad = CanvasUtils.createHighlightGradient(
                     ctx, moonX, moonY, moonRadius,
                     -moonRadius * 0.2, -moonRadius * 0.2,
@@ -3292,45 +3289,33 @@ class AtmosphericWeatherCard extends HTMLElement {
                         { stop: 1, color: `rgba(210, 220, 235, ${0.85 * fadeOpacity})` }
                     ]
                 );
-                
                 ctx.fillStyle = moonGrad;
                 ctx.fill();
             }
             
-            ctx.restore(); // Remove clip
+            ctx.restore(); // End Clipping
             
-            // Subtle craters (only visible on lit portions for non-new moons)
+            // --- D. CRATERS (Tuned) ---
+            // REDUCED: Opacity by ~10% as requested (0.15->0.13, 0.25->0.22)
             if (illumination > 0.05) {
-                const op = fadeOpacity * Math.min(1, illumination * 3.0);
+                const op = fadeOpacity * Math.min(1, illumination * 4.0); 
                 
-                // LAYER 1: Large Faint Wash (The soft edges)
-                // Reduced opacity (0.15 -> 0.12)
-                ctx.fillStyle = `rgba(30, 35, 50, ${0.12 * op})`;
-                
-                // Oceanus Procellarum (Left) - Pushed further left (-5 -> -9)
+                // Layer 1: Large Faint Wash (0.15 -> 0.13)
+                ctx.fillStyle = `rgba(30, 35, 50, ${0.13 * op})`; 
                 ctx.beginPath(); ctx.ellipse(moonX - 9, moonY + 2, 7, 9, 0.2, 0, Math.PI * 2); ctx.fill();
-                
-                // Mare Serenitatis (Top Right) - Pushed further right/up (+5 -> +8)
                 ctx.beginPath(); ctx.ellipse(moonX + 8, moonY - 6, 6, 4, -0.3, 0, Math.PI * 2); ctx.fill();
-                
-                // Mare Nubium (Bottom) - Pushed down (+6 -> +10)
                 ctx.beginPath(); ctx.ellipse(moonX - 2, moonY + 10, 5, 3, 0.1, 0, Math.PI * 2); ctx.fill();
 
-                // LAYER 2: Inner Core (The depth)
-                // Reduced opacity (0.25 -> 0.18) -> This is the key to making it "5-10% less visible"
-                ctx.fillStyle = `rgba(25, 30, 45, ${0.18 * op})`; 
-                
-                // Inner Left
+                // Layer 2: Inner Core (Depth) (0.25 -> 0.22)
+                ctx.fillStyle = `rgba(25, 30, 45, ${0.22 * op})`; 
                 ctx.beginPath(); ctx.ellipse(moonX - 9, moonY + 2, 4, 6, 0.2, 0, Math.PI * 2); ctx.fill();
-                // Inner Top Right
                 ctx.beginPath(); ctx.ellipse(moonX + 8, moonY - 6, 3, 2, -0.3, 0, Math.PI * 2); ctx.fill();
-                // Inner Bottom
                 ctx.beginPath(); ctx.ellipse(moonX - 2, moonY + 10, 2.5, 1.5, 0.1, 0, Math.PI * 2); ctx.fill();
                 
-                // Small Texture Details (Scattered edges)
-                ctx.fillStyle = `rgba(25, 30, 45, ${0.12 * op})`;
-                ctx.beginPath(); ctx.arc(moonX + 6, moonY + 5, 1.2, 0, Math.PI * 2); ctx.fill(); // Mid right
-                ctx.beginPath(); ctx.arc(moonX - 5, moonY - 8, 1.0, 0, Math.PI * 2); ctx.fill(); // Top left
+                // Small Texture Details (0.15 -> 0.13)
+                ctx.fillStyle = `rgba(25, 30, 45, ${0.13 * op})`;
+                ctx.beginPath(); ctx.arc(moonX + 6, moonY + 5, 1.2, 0, Math.PI * 2); ctx.fill(); 
+                ctx.beginPath(); ctx.arc(moonX - 5, moonY - 8, 1.0, 0, Math.PI * 2); ctx.fill(); 
             }
         });
     }
@@ -3357,20 +3342,17 @@ class AtmosphericWeatherCard extends HTMLElement {
                 ctx.translate(cloud.x, cloud.y);
                 ctx.scale(cloud.scale * breathScale, cloud.scale * 0.5 * breathScale);
                 
-                // Night cloud colors (silvery, moon-lit)
                 for (let j = 0; j < cloud.puffs.length; j++) {
                     const puff = cloud.puffs[j];
-                    
                     const opacity = cloud.opacity * puff.shade * fadeOpacity;
-                    
                     const gradient = CanvasUtils.createHighlightGradient(
                         ctx, puff.dx, puff.dy, puff.rad,
-                        -puff.rad * 0.15, -puff.rad * 0.15,
+                        -puff.rad * 0.1, -puff.rad * 0.1, 
                         [
-                            { stop: 0, color: `rgba(140, 155, 180, ${opacity * 0.7})` },
-                            { stop: 0.4, color: `rgba(100, 115, 145, ${opacity * 0.5})` },
-                            { stop: 0.7, color: `rgba(70, 85, 115, ${opacity * 0.3})` },
-                            { stop: 1, color: `rgba(50, 65, 95, 0)` }
+                            { stop: 0, color: `rgba(200, 215, 235, ${opacity * 0.4})` },
+                            { stop: 0.4, color: `rgba(100, 115, 140, ${opacity * 0.2})` },
+                            { stop: 0.8, color: `rgba(30, 40, 60, ${opacity * 0.1})` },
+                            { stop: 1, color: `rgba(20, 30, 50, 0)` }
                         ]
                     );
                     
