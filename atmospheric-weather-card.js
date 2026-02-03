@@ -1,6 +1,6 @@
 /**
  * ATMOSPHERIC WEATHER CARD
- * Version: 1.4
+ * Version: 1.5
  * A custom Home Assistant card that renders animated weather effects.
  */
  
@@ -3631,3 +3631,4 @@ class AtmosphericWeatherCard extends HTMLElement {
 // //#endregion
 
 customElements.define('atmospheric-weather-card', AtmosphericWeatherCard);
+
