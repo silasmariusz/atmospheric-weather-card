@@ -8,15 +8,19 @@
 | <img src="https://github.com/user-attachments/assets/878c8e41-04ed-4cf4-a09d-2c079a0f427a" width="400"> | <img src="https://github.com/user-attachments/assets/2a58f714-74ba-426e-8492-afdc541053e1" width="400"> |
 | <img src="https://github.com/user-attachments/assets/1570d86a-8d31-449e-85a1-0f0d081f28ac" width="400"> | <img width="408" height="284" alt="image" src="https://github.com/user-attachments/assets/b149b219-525a-452e-85b0-bc24cf89e2d3" />
 
-> **About the screenshots:** These images display a complete dashboard layout. This component provides the **animated weather background and house visualization only**. The overlay buttons shown are separate elements; to replicate them, please refer to the included `paper-buttons-row-example.yml`.
+<details>
+  <summary>About the screenshots</summary>
+
+  These images display a complete dashboard layout. Please note that this component provides the **animated weather background and house visualization only**. The overlay buttons shown are separate elements; to replicate them, please refer to the included `paper-buttons-row-example.yml`.
+</details>
 
 ## Technical Features
 
-* **Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, airplanes, shooting stars and rare aurora borealis effects.
-* **Organic Cloud Generation:** Uses a custom generator to create unique, non-repeating cloud shapes.
+* **Animated Ambient Environment:** Includes wind-blown leaves, drifting fog banks, randomized lightning bolts, sun rays with heat shimmer, airplanes, shooting stars, and rare aurora borealis effects.
+* **Organic Cloud Generation:** Uses a custom generator to create unique, realistic cloud shapes.
 * **Dynamic Weather Physics:** Individual particles for rain, snow, and hail with custom physics for speed, turbulence, and wobbling.
 * **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
-* **Performance Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag.
+* **Performance & Battery Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag.
 
 ## Installation
 
