@@ -24,7 +24,23 @@
 | **Windy Weather** <br> <img src="https://github.com/user-attachments/assets/9e2606a7-5838-4d32-9031-f95dc0f03fe4" width="100%" alt="Day - Windy" /> | **Partly Cloudy (a Comet!)** <br> <img src="https://github.com/user-attachments/assets/814dc888-2601-4c3c-91c5-a9ff6bcdc578" width="100%" alt="Night - Comet" /> |
 | **Rainy Weather** <br> <img src="https://github.com/user-attachments/assets/0fa2a2eb-d869-4d84-a6aa-b0b1999d49ea" width="100%" alt="Day - Rainy" /> | **Aurora Borealis** <br> <img src="https://github.com/user-attachments/assets/9591e9ef-50a6-4d67-be23-a6f51b92efd6" width="100%" alt="Night - Aurora" /> |
 
+## Table of Contents
 
+* [Screenshots](#screenshots-the-complete-scene)
+* [Technical Features](#technical-features)
+* [Installation](#installation)
+* [Configuration](#configuration)
+    * [Basic Usage](#basic-usage)
+    * [Full Configuration](#full-configuration-recommended)
+* [Feature Documentation](#feature-documentation)
+    * [Smart Day/Night Logic](#smart-daynight-logic)
+    * [Celestial Positioning](#celestial-positioning)
+    * [Generic Status Entity](#generic-status-entity)
+    * [Layout Offset](#layout-offset)
+* [Custom House Image Generation](#custom-house-image-generation)
+* [Adding Buttons](#adding-buttons)
+
+---
 
 ## Technical Features
 
