@@ -3,6 +3,19 @@
 > **AI-DISCLAIMER:**
 > This card was created with the help of AI.
 
+## Table of Contents
+
+* [Screenshots (The Complete Scene)](#screenshots-the-complete-scene)
+* [Screenshots (Standalone Weather Visuals)](#screenshots-standalone-weather-visuals)
+* [Technical Features](#technical-features)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Feature Documentation](#feature-documentation)
+* [Custom House Image Generation](#custom-house-image-generation)
+* [Adding Buttons](#adding-buttons)
+
+---
+
 ## Screenshots (The Complete Scene)
 
 | Night View | Day View |
@@ -23,24 +36,6 @@
 | **Partly Cloudy** <br> <img src="https://github.com/user-attachments/assets/ff05d0f2-87d2-4dd9-9253-e1fa99d7c7b7" width="100%" alt="Day - Partly Cloudy" /> | **Stormy Weather** <br> <img src="https://github.com/user-attachments/assets/efb3ed85-16c2-494c-bc10-65c3006b2c6f" width="100%" alt="Night - Stormy" /> |
 | **Windy Weather** <br> <img src="https://github.com/user-attachments/assets/9e2606a7-5838-4d32-9031-f95dc0f03fe4" width="100%" alt="Day - Windy" /> | **Partly Cloudy (a Comet!)** <br> <img src="https://github.com/user-attachments/assets/814dc888-2601-4c3c-91c5-a9ff6bcdc578" width="100%" alt="Night - Comet" /> |
 | **Rainy Weather** <br> <img src="https://github.com/user-attachments/assets/0fa2a2eb-d869-4d84-a6aa-b0b1999d49ea" width="100%" alt="Day - Rainy" /> | **Aurora Borealis** <br> <img src="https://github.com/user-attachments/assets/9591e9ef-50a6-4d67-be23-a6f51b92efd6" width="100%" alt="Night - Aurora" /> |
-
-## Table of Contents
-
-* [Screenshots](#screenshots-the-complete-scene)
-* [Technical Features](#technical-features)
-* [Installation](#installation)
-* [Configuration](#configuration)
-    * [Basic Usage](#basic-usage)
-    * [Full Configuration](#full-configuration-recommended)
-* [Feature Documentation](#feature-documentation)
-    * [Smart Day/Night Logic](#smart-daynight-logic)
-    * [Celestial Positioning](#celestial-positioning)
-    * [Generic Status Entity](#generic-status-entity)
-    * [Layout Offset](#layout-offset)
-* [Custom House Image Generation](#custom-house-image-generation)
-* [Adding Buttons](#adding-buttons)
-
----
 
 ## Technical Features
 
@@ -75,7 +70,6 @@
 5. Refresh your browser (clear cache) to load the card.
 </details>
 
-
 ## Configuration
 
 ### Basic Usage
@@ -94,33 +88,22 @@ type: custom:atmospheric-weather-card
 weather_entity: weather.forecast_home
 
 # --- Logic & Automation ---
-# Optional: Force "light" or "dark" mode manually (Priority 1)
 mode: auto
-# Optional: For theme-based automatic toggling (Priority 2)
 theme_entity: input_select.theme
-# Optional: For automatic day/night detection (Priority 3)
 sun_entity: sun.sun
-# Optional: For accurate moon phases
 moon_phase_entity: sensor.moon_phase
 
-# --- Layout --- 
-# Optional: Detects dashboard margins and expands to use full width
+# --- Layout ---
 full_width: true
-# Optional: Move the card via margins to overlap other elements (supports negative values)
 offset: "-50px 0px 0px 0px"
-# Optional: Move Sun/Moon position (90 = default). 
-# Positive = Distance from Left. Negative (-90) = Distance from Right.
 sun_moon_x_position: -50
-# Optional: Vertical distance from top (90 = default)
 sun_moon_y_position: 40 
 
 # --- Images ---
-# Optional: Your custom images (transparent PNGs recommended)
 day: /local/images/my-house-day.png
 night: /local/images/my-house-night.png
 
 # --- Smart Status (Optional) ---
-# Changes the house image when this entity is active (e.g. on, open, unlocked, home)
 status_entity: binary_sensor.front_door
 status_image_day: /local/images/house-open-day.png
 status_image_night: /local/images/house-open-night.png
@@ -129,27 +112,20 @@ status_image_night: /local/images/house-open-night.png
 ## Feature Documentation
 
 ### Smart Day/Night Logic
-The card uses a strict 3-layer priority system to decide if it should render Night (moon and stars, darker clouds) or Day (sun, lighter clouds) effects. This ensures your weather effects always match the background.
+The card uses a strict 3-layer priority system to decide between Night and Day effects.
 
 | Priority | Name | Config Option | Logic |
 | :--- | :--- | :--- | :--- |
-| **1** | **Manual Mode** | `mode` | If set to `light` or `dark`, it overrides **everything**. Perfect for fixed themes. |
-| **2** | **Theme Entity** | `theme_entity` | If the entity state is "Dark" or "Night", night visuals are applied. |
+| **1** | **Manual Mode** | `mode` | If set to `light` or `dark`, it overrides everything. |
+| **2** | **Theme Entity** | `theme_entity` | Applies night visuals if state is "Dark" or "Night". |
 | **3** | **Automation** | `sun_entity` | Fallback. Checks if sun is `below_horizon`. |
 
 ### Celestial Positioning
-You can precisely control where the Sun and Moon appear.
-* **`sun_moon_x_position`**: Controls horizontal placement.
-    * **Positive (e.g., `90`)**: Measures pixels from the **Left**.
-    * **Negative (e.g., `-90`)**: Measures pixels from the **Right**.
-* **`sun_moon_y_position`**: Measures pixels from the **Top**.
+* **`sun_moon_x_position`**: Horizontal placement. Positive = from Left, Negative = from Right.
+* **`sun_moon_y_position`**: Vertical distance from the Top.
 
 ### Generic Status Entity
-You can override the default house image based on **any** entity's state using `status_entity`.
-
-* **Trigger:** The image changes if the entity is in any active state: `on`, `open`, `unlocked`, `true`, `home`, `active`.
-
-**Use Case Examples:**
+Trigger an image change if the entity is in any active state: `on`, `open`, `unlocked`, `true`, `home`, `active`.
 
 | Category | Example Entity | Active State |
 | :--- | :--- | :--- |
@@ -159,25 +135,18 @@ You can override the default house image based on **any** entity's state using `
 | **Presence** | `zone.home` | `active` |
 
 ### Layout Offset
-You can control the exact positioning of the card using the `offset` option. This applies standard CSS margins to the card container.
-
 * **Syntax:** `"Top Right Bottom Left"` (e.g., `"-50px 0px 0px 0px"`).
-* **Purpose:** Use negative values to pull the weather card *behind* other dashboard cards, allowing for seamless layering effects.
+* **Purpose:** Use negative values to pull the weather card behind other elements.
 
 ## Custom House Image Generation
 
-You can create a personalized 3D-style image for this card using AI image generators.
+1. **Capture a Reference:** Take a photo from a corner to help the AI understand depth.
+2. **Generate the Image:** Use the prompt below for a clean 3D architectural look.
 
-**1. Capture a Reference:** Take a clear photo of your house or the specific area you want to display. Aim for a wide shot that shows the overall layout. Taking the photo from a corner usually helps the AI understand the perspective and depth better.
-
-**2. Generate the Image:** Use a prompt that focuses on a "clean model" aesthetic. You can use the template below, adjusting the description to match your specific home layout.
-
-**Prompt Template:**
+> **Prompt Template:**
 > Isometric view of a modern minimalist architectural model section from the outside on solid white background. [Describe your specific floors or rooms here]. Materials are matte white and light wood only. No complex textures, studio lighting, very clean, simplified shapes.
 
-**3. Remove the Background:** The card requires a transparent PNG so that clouds and stars are visible behind the house. Use a free tool like remove.bg or Photoshop to remove the background from your generated image. 
+3. **Remove the Background:** Save as a transparent PNG so weather effects appear behind the house.
 
 ## Adding Buttons
-To achieve the exact look in the screenshots (where buttons and weather data "float" over the weather visuals), you can add a `custom:paper-buttons-row` card **before** this weather card.
-
-There's a simplified card example in the repository which mimics the style in the screenshots. You can use the `offset` feature to achieve the overlay effect.
+To achieve the floating button look, place a `custom:paper-buttons-row` card before this card and use the `offset` feature to layer them.
