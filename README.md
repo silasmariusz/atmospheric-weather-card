@@ -30,7 +30,7 @@ The card has two modes that affect how it renders and what kind of dashboard set
 
 ### Standalone Mode
 
-A self-contained card with its own weather-aware background gradients. Renders the current temperature and location pulled from your weather entity. Works on any dashboard, with any theme — no extra setup.
+A self-contained card with its own weather-aware background gradients. Renders the current temperature pulled from your weather entity. Works on any dashboard, with any theme.
 
 The text automatically positions itself on the opposite side of the sun/moon to avoid overlap.
 
