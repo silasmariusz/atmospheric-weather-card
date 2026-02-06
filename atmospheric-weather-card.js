@@ -1,11 +1,11 @@
 /**
  * ATMOSPHERIC WEATHER CARD
- * Version: 1.6
+ * Version: 1.7
  * A custom Home Assistant card that renders animated weather effects.
  */
  
 console.info(
-  "%c ATMOSPHERIC WEATHER CARD ",
+  "%c ATMOSPHERIC WEATHER CARD",
   "color: white; font-weight: 700; background: linear-gradient(90deg, #355C7D 0%, #6C5B7B 50%, #C06C84 100%); padding: 6px 12px; border-radius: 6px; font-family: sans-serif; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"
 );
 
@@ -435,6 +435,21 @@ class AtmosphericWeatherCard extends HTMLElement {
 		
 		// Single flag to prevent double-initialization
         this._initializationComplete = false;
+		
+		// Cache for text values to prevent DOM thrashing
+        this._lastTempStr = null;
+        this._lastLocStr = null;
+		
+		// PERFORMANCE CACHE
+        this._cachedWeather = null;
+        this._cachedSun = null;
+        this._cachedMoon = null;
+        this._cachedTheme = null;
+        this._cachedStatus = null;
+        this._cachedLanguage = null;
+        
+        // STYLE CACHE
+        this._prevStyleSig = null;
     }
 
     _initDOM() {
@@ -453,7 +468,6 @@ class AtmosphericWeatherCard extends HTMLElement {
                 flex-direction: column;
                 width: 100%;
                 background: transparent !important;
-                /* Fallback height for standard Masonry views */
                 min-height: 200px;   
             }
 
@@ -475,7 +489,6 @@ class AtmosphericWeatherCard extends HTMLElement {
                 opacity: 1;
             }
 
-            /* FULL WIDTH MODE */
             #card-root.full-width {
                 margin: 0px calc(var(--ha-view-sections-narrow-column-gap, var(--ha-card-margin, 8px)) * -1) !important;
                 padding: 0px var(--ha-view-sections-narrow-column-gap, var(--ha-card-margin, 8px)) !important;
@@ -483,13 +496,9 @@ class AtmosphericWeatherCard extends HTMLElement {
             
             canvas { 
                 position: absolute; 
-                top: 0; 
-                left: 0; 
-                width: 100%; 
-                height: 100%;
+                top: 0; left: 0; 
+                width: 100%; height: 100%;
                 pointer-events: none;
-                
-                /* Your original masks */
                 --mask-vertical: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
                 --mask-horizontal: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
                 -webkit-mask-image: var(--mask-vertical), var(--mask-horizontal);
@@ -498,62 +507,218 @@ class AtmosphericWeatherCard extends HTMLElement {
                 mask-composite: intersect;
             }
             
-            /* FIXED IMAGE STYLES */
             img {
-                position: absolute;  
-                top: 0;
-                height: 100%;
-                width: auto;
-                max-width: 100%;
-                object-fit: contain; 
-                z-index: 2;
-                user-select: none;
-                pointer-events: none;
-                border: none;
-                outline: none;
-				transition: height 0.3s ease, top 0.3s ease;
+                position: absolute; top: 0;
+                height: 100%; width: auto; max-width: 100%;
+                object-fit: contain; z-index: 2;
+                user-select: none; pointer-events: none;
+                border: none; outline: none;
+                transition: height 0.3s ease, top 0.3s ease;
             }
             
-            /* Hides the image completely if src is empty to prevent the black border */
-            img[src=""], img:not([src]) {
-                display: none;
-                visibility: hidden;
-            }
+            img[src=""], img:not([src]) { display: none; visibility: hidden; }
             
-            #bg-canvas { 
-                z-index: 0; 
-                -webkit-mask-image: none !important; 
-                mask-image: none !important; 
-            }
+            #bg-canvas { z-index: 0; -webkit-mask-image: none !important; mask-image: none !important; }
             #mid-canvas { z-index: 1; }
             #fg-canvas { z-index: 3; }
+            
+            /* ============================================== */
+            /* STANDALONE / CARD MODE STYLES                  */
+            /* ============================================== */
+            
+            #card-root.standalone {
+                box-shadow: var(--ha-card-box-shadow, 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12));
+                border: none;
+                background-color: var(--ha-card-background, var(--card-background-color, white));
+                overflow: hidden;
+                transition: background 0.5s ease;
+            }
+
+            /* Disable mask in standalone mode for edge-to-edge colors */
+            #card-root.standalone canvas { 
+                -webkit-mask-image: none !important;
+                mask-image: none !important;
+                --mask-vertical: none; 
+                --mask-horizontal: none;
+            }
+
+            /* --- DAY MODE (SOFT & AIRY) ----------------------------- */
+            /* Adjusted to be lighter and less saturated */
+            
+            /* Day Default: Soft Sky Blue (Not intense) */
+            #card-root.standalone.scheme-day {
+                background: linear-gradient(160deg, #89f7fe 0%, #66a6ff 100%);
+            }
+            
+            /* Day: Partly Cloudy (Very Light Blue/Grey) */
+            #card-root.standalone.scheme-day.weather-partly {
+                background: linear-gradient(160deg, #E0EAFC 0%, #CFDEF3 100%) !important;
+            }
+            
+            /* Day: Cloudy (Soft Silver) */
+            #card-root.standalone.scheme-day.weather-overcast {
+                background: linear-gradient(160deg, #E6E9F0 0%, #eef1f5 100%) !important;
+            }
+            
+            /* Day: Rain (Muted Blue-Grey) */
+            #card-root.standalone.scheme-day.weather-rainy {
+                background: linear-gradient(160deg, #accbee 0%, #e7f0fd 100%) !important;
+            }
+            
+            /* Day: Storm (Light Moody Grey - Perfectly readable) */
+            #card-root.standalone.scheme-day.weather-storm {
+                background: linear-gradient(160deg, #BBD2C5 0%, #536976 100%) !important;
+            }
+            
+            /* Day: Snow (Pure White/Ice) */
+            #card-root.standalone.scheme-day.weather-snow {
+                background: linear-gradient(160deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+            }
+
+            /* --- NIGHT MODE (VOID / OLED DARK) ---------------------- */
+            /* Desaturated to remove the "Bright Blue" look */
+
+            /* Night Default: Deepest Space Grey */
+            #card-root.standalone.scheme-night {
+                background: linear-gradient(160deg, #050505 0%, #101018 100%);
+            }
+
+            /* Night: Partly Cloudy (Dark Charcoal) */
+            #card-root.standalone.scheme-night.weather-partly {
+                background: linear-gradient(160deg, #0f0f10 0%, #181820 100%) !important;
+            }
+
+            /* Night: Cloudy (Black Mist) */
+            #card-root.standalone.scheme-night.weather-overcast {
+                background: linear-gradient(160deg, #101010 0%, #202020 100%) !important;
+            }
+
+            /* Night: Rain (Very Dark Desaturated Navy) */
+            #card-root.standalone.scheme-night.weather-rainy {
+                background: linear-gradient(160deg, #050508 0%, #0a0a15 100%) !important;
+            }
+
+            /* Night: Storm (Pure Void) */
+            #card-root.standalone.scheme-night.weather-storm {
+                background: linear-gradient(160deg, #000000 0%, #0a0a0a 100%) !important;
+            }
+            
+            /* Night: Snow (Darkest Frozen Grey) */
+            #card-root.standalone.scheme-night.weather-snow {
+                background: linear-gradient(160deg, #08080a 0%, #15151a 100%) !important;
+            }
+            
+            /* ============================================== */
+            /* TEXT OVERLAY STYLES                            */
+            /* ============================================== */
+
+            #temp-text, #loc-text {
+                position: absolute; z-index: 10;
+                pointer-events: none;
+                font-family: var(--ha-font-family, var(--paper-font-body1_-_font-family, sans-serif));
+                transition: color 0.3s ease;
+                display: none; 
+            }
+
+            #card-root.standalone #temp-text,
+            #card-root.standalone #loc-text { 
+			display: flex;
+			}
+
+            /* --- TEMPERATURE --- */
+            #temp-text {
+                top: var(--ha-space-4, 16px);
+                font-size: clamp(26px, 10cqw, 46px); 
+                font-weight: 600; 
+                line-height: 1;
+                letter-spacing: -1px;
+				align-items: flex-start;
+				gap: 6px;
+            }
+            
+            /* The unit (e.g. °C) - Smaller and lighter */
+            .temp-unit {
+                font-size: 0.5em;
+                font-weight: 500;
+                padding-top: 6px;
+                opacity: 0.8;
+            }
+
+            /* --- LOCATION --- */
+            #loc-text {
+                bottom: var(--ha-space-4, 16px);
+                font-size: 15px;
+                font-weight: 500;
+                opacity: 0.7;
+                letter-spacing: 0.5px;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                max-width: 160px;
+				align-items: center;
+				gap: 6px;
+            }
+            
+            /* Map Marker Icon (SVG Mask) */
+            #loc-text::before {
+                content: '';
+                display: inline-block;
+                width: 12px; 
+                height: 12px;
+                background-color: currentColor;
+                opacity: 0.8;
+                -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,2C8.13,2 5,5.13 5,9c0,5.25 7,13 7,13s7,-7.75 7,-13c0,-3.87 -3.13,-7 -7,-7zM12,11.5c-1.38,0 -2.5,-1.12 -2.5,-2.5s1.12,-2.5 2.5,-2.5 2.5,1.12 2.5,2.5 -1.12,2.5 -2.5,2.5z"/></svg>') no-repeat center;
+                mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,2C8.13,2 5,5.13 5,9c0,5.25 7,13 7,13s7,-7.75 7,-13c0,-3.87 -3.13,-7 -7,-7zM12,11.5c-1.38,0 -2.5,-1.12 -2.5,-2.5s1.12,-2.5 2.5,-2.5 2.5,1.12 2.5,2.5 -1.12,2.5 -2.5,2.5z"/></svg>') no-repeat center;
+            }
+
+            /* --- ALIGNMENT --- */
+            /* Offset slightly to account for padding */
+            .text-left { left: calc(var(--ha-space-4, 16px) + 4px); text-align: left; }
+            .text-right { right: calc(var(--ha-space-4, 16px) + 4px); text-align: right; }
+
+            /* --- COLORS --- */
+            #card-root.standalone.scheme-day #temp-text,
+            #card-root.standalone.scheme-day #loc-text {
+                color: var(--primary-text-color, #2c3e50); 
+                text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+            }
+
+            #card-root.standalone.scheme-night #temp-text,
+            #card-root.standalone.scheme-night #loc-text {
+                color: #ffffff;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            }
         `;
 
         const root = document.createElement('div');
         root.id = 'card-root';
         
-        const bg = document.createElement('canvas');
-        bg.id = 'bg-canvas';
-        
-        const mid = document.createElement('canvas');
-        mid.id = 'mid-canvas';
-        
-        const fg = document.createElement('canvas');
-        fg.id = 'fg-canvas';
+        const bg = document.createElement('canvas'); bg.id = 'bg-canvas';
+        const mid = document.createElement('canvas'); mid.id = 'mid-canvas';
+        const fg = document.createElement('canvas'); fg.id = 'fg-canvas';
         
         const img = document.createElement('img');
         img.onerror = () => { img.style.opacity = '0'; };
         img.onload = () => { img.style.opacity = '1'; };
 
-        root.append(bg, mid, img, fg);
+        // --- TEXT ELEMENTS FOR STANDALONE MODE ---
+        const tempText = document.createElement('div');
+        tempText.id = 'temp-text';
+        
+        const locText = document.createElement('div');
+        locText.id = 'loc-text';
+
+        // 1. Append everything to root (Text added last to sit on top)
+        root.append(bg, mid, img, fg, tempText, locText);
         this.shadowRoot.append(style, root);
 
-        this._elements = { root, bg, mid, img, fg };
+        // 2. DEFINE CACHE ONCE (The Fix)
+        // We do this AFTER creating all variables, and we include everything here.
+        this._elements = { root, bg, mid, img, fg, tempText, locText };
         
         // Get canvas contexts with optimization hints
         const ctxOptions = { 
             alpha: true, 
-            // desynchronized: true,
             willReadFrequently: false 
         };
         
@@ -733,34 +898,216 @@ class AtmosphericWeatherCard extends HTMLElement {
     set hass(hass) {
         if (!hass || !this._config) return;
 
-        // --- 1. CONFIG & FULL WIDTH ---
+        // 1. GET ENTITIES (Fast Lookups)
+        const wEntity = hass.states[this._config.weather_entity];
+        const sunEntity = this._config.sun_entity ? hass.states[this._config.sun_entity] : null;
+        const moonEntity = this._config.moon_phase_entity ? hass.states[this._config.moon_phase_entity] : null;
+        
+        // Track Theme & Status entities so manual toggles work
+        const themeEntity = this._config.theme_entity ? hass.states[this._config.theme_entity] : null;
+        const statusEntity = this._config.status_entity ? hass.states[this._config.status_entity] : null;
+        
+        // Track System Dark Mode (Sidebar Toggle)
+        const sysDark = hass.themes?.darkMode;
+        
+        const lang = hass.locale?.language || 'en';
+
+        // 2. PERFORMANCE SHIELD (The Fix for Lag)
+        // Only return if ALL relevant inputs are identical to the last frame.
+        // MODIFIED: We check .state strings for theme/status to ensure updates fire immediately.
+        if (this._cachedWeather === wEntity && 
+            this._cachedSun === sunEntity && 
+            this._cachedMoon === moonEntity &&
+            this._cachedTheme?.state === themeEntity?.state && 
+            this._cachedStatus?.state === statusEntity?.state && 
+            this._cachedLanguage === lang &&
+            this._cachedSysDark === sysDark) {
+            return; 
+        }
+
+        // Update Cache immediately
+        this._cachedWeather = wEntity;
+        this._cachedSun = sunEntity;
+        this._cachedMoon = moonEntity;
+        this._cachedTheme = themeEntity;
+        this._cachedStatus = statusEntity;
+        this._cachedLanguage = lang;
+        this._cachedSysDark = sysDark;
+
+        // -----------------------------------------------------------------
+        // LOGIC START
+        // -----------------------------------------------------------------
+
+        // --- CONFIG & FULL WIDTH ---
         const useFullWidth = this._config.full_width === true;
         if (this._elements?.root) {
-            if (useFullWidth) {
+            if (useFullWidth && !this._elements.root.classList.contains('full-width')) {
                 this._elements.root.classList.add('full-width');
-            } else {
+            } else if (!useFullWidth && this._elements.root.classList.contains('full-width')) {
                 this._elements.root.classList.remove('full-width');
             }
         }
 
-        const wEntity = this._getEntityState(hass, this._config.weather_entity);
         if (!wEntity) return;
 
-        // --- 2. MOON PHASE LOGIC ---
-        const moonEntityId = this._config.moon_phase_entity;
-        const moonEntity = moonEntityId ? this._getEntityState(hass, moonEntityId) : null;
-        
+        // --- MOON PHASE LOGIC ---
         if (moonEntity && moonEntity.state !== this._moonPhaseState) {
             this._moonPhaseState = moonEntity.state;
             this._moonPhaseConfig = MOON_PHASES[moonEntity.state] || MOON_PHASES['full_moon'];
         }
 
-        // --- 3. CALCULATE STATE ---
-        const isNight = this._calculateIsNight(hass);
-        const hasNightChanged = this._isNight !== isNight;
+        // --- CALCULATE STATE (Day/Night) ---
+        // We pass variables manually to ensure reactivity
+        let isNight = false;
         
+        // --- LOGIC CORRECTION: Handle "Auto" properly ---
+        let forcedMode = null; // Tristate: true (Night), false (Day), or null (Auto)
+
+        // 1. Check Manual Config first
+        if (this._config.mode) {
+            const m = this._config.mode.toLowerCase();
+            if (m === 'dark' || m === 'night') forcedMode = true;
+            else if (m === 'light' || m === 'day') forcedMode = false;
+            // If 'auto', forcedMode remains null, allowing us to fall through to entities
+        }
+
+        // 2. Apply Hierarchy
+        if (forcedMode !== null) {
+             // YAML forced 'dark' or 'light' overrides everything
+             isNight = forcedMode;
+        } 
+        else if (themeEntity && !['unavailable', 'unknown'].includes(themeEntity.state)) {
+             // Theme Entity is next priority (Fixes the "Auto" bug)
+             const state = themeEntity.state.toLowerCase();
+             isNight = NIGHT_MODES.includes(state);
+        }
+        else if (sunEntity) {
+             // Sun Entity is next
+             const state = sunEntity.state.toLowerCase();
+             isNight = state === 'below_horizon' || NIGHT_MODES.includes(state);
+        }
+        else {
+             // Fallback to System Dark Mode
+             isNight = !!sysDark;
+        }
+        
+        const hasNightChanged = this._isNight !== isNight;
         this._isNight = isNight;
         this._isLightBackground = !isNight;
+
+        // --- WEATHER PARAMETERS ---
+        let weatherState = (wEntity.state || 'default').toLowerCase();
+
+        if (isNight && weatherState === 'sunny') weatherState = 'clear-night';
+        if (!isNight && weatherState === 'clear-night') weatherState = 'sunny';
+
+        const key = weatherState.toLowerCase();
+        let newParams = { ...(WEATHER_MAP[key] || WEATHER_MAP['default']) };
+        
+        if (isNight && (key === 'sunny' || key === 'clear-night')) {
+            newParams = { ...newParams, type: 'stars', count: 280 };
+        }
+        
+        // --- STANDALONE CARD STYLES (DYNAMIC) ---
+        if (this._config.card_style) {
+            const styleSig = `${isNight}_${newParams.atmosphere}`;
+            
+            if (this._prevStyleSig !== styleSig) {
+                this._prevStyleSig = styleSig;
+                this._elements.root.classList.add('standalone');
+                
+                // Clear all weather classes
+                this._elements.root.classList.remove(
+                    'weather-overcast', 'weather-rainy', 'weather-storm', 'weather-snow', 'weather-partly'
+                );
+                
+                if (isNight) {
+                    this._elements.root.classList.add('scheme-night');
+                    this._elements.root.classList.remove('scheme-day');
+                } else {
+                    this._elements.root.classList.add('scheme-day');
+                    this._elements.root.classList.remove('scheme-night');
+                    
+                    // Apply Day Moods
+                    switch (newParams.atmosphere) {
+                        case 'overcast':
+                        case 'mist':
+                        case 'fog':
+                        case 'windy':
+                            this._elements.root.classList.add('weather-overcast');
+                            break;
+                        case 'fair':
+                            this._elements.root.classList.add('weather-partly');
+                            break;
+                        case 'rain':
+                            this._elements.root.classList.add('weather-rainy');
+                            break;
+                        case 'storm':
+                            this._elements.root.classList.add('weather-storm');
+                            break;
+                        case 'snow':
+                            this._elements.root.classList.add('weather-snow');
+                            break;
+                    }
+                }
+            }
+        } else if (this._prevStyleSig !== null) {
+            this._elements.root.classList.remove('standalone', 'scheme-day', 'scheme-night', 'weather-overcast', 'weather-rainy', 'weather-storm', 'weather-snow', 'weather-partly');
+            this._prevStyleSig = null;
+        }
+		
+	    // --- TEXT DATA & POSITIONING ---
+        // Safety check: ensure elements exist before accessing
+        if (this._config.card_style && wEntity && this._elements?.tempText && this._elements?.locText) {
+            
+            // 1. Gather Data
+            const temp = wEntity.attributes.temperature;
+            const unit = wEntity.attributes.temperature_unit || '';
+            const location = wEntity.attributes.friendly_name || '';
+            
+            // 2. Update Text (Only if changed)
+            // Signature check prevents re-formatting numbers unnecessarily
+            const currentTempSig = `${temp}_${unit}_${lang}`;
+            
+            if (this._lastTempStr !== currentTempSig) {
+                this._lastTempStr = currentTempSig;
+                
+                let formattedTemp = temp;
+                if (temp !== null && !isNaN(parseFloat(temp))) {
+                      // Locale-aware formatting (e.g. 4.5 vs 4,5)
+                      formattedTemp = new Intl.NumberFormat(lang, { 
+                        maximumFractionDigits: 1, 
+                        minimumFractionDigits: 0 
+                    }).format(temp);
+                }
+                
+                // HTML update for styling
+                this._elements.tempText.innerHTML = `<span class="temp-val">${formattedTemp}</span><span class="temp-unit">${unit}</span>`;
+            }
+
+            if (this._lastLocStr !== location) {
+                this._lastLocStr = location;
+                this._elements.locText.textContent = location;
+            }
+
+            // 3. Update Positioning (Cached)
+            const sunPos = parseInt(this._config.sun_moon_x_position, 10);
+            const isSunLeft = !isNaN(sunPos) ? sunPos >= 0 : true;
+
+            if (this._prevSunLeft !== isSunLeft) {
+                this._prevSunLeft = isSunLeft;
+                
+                const targetClass = isSunLeft ? 'text-right' : 'text-left';
+                const removeClass = isSunLeft ? 'text-left' : 'text-right';
+                
+                // Swap classes
+                this._elements.tempText.classList.remove(removeClass);
+                this._elements.tempText.classList.add(targetClass);
+                
+                this._elements.locText.classList.remove(removeClass);
+                this._elements.locText.classList.add(targetClass);
+            }
+        }
 
         // --- 4. WIND LOGIC ---
         const windSpeedRaw = this._getEntityAttribute(wEntity, 'wind_speed', 0);
@@ -774,70 +1121,56 @@ class AtmosphericWeatherCard extends HTMLElement {
         let src = statusSrc || baseSrc || '';
         if (!src) src = this._config.day || '';
 
-        // FIX: Ensure we clear the src attribute if no image is found
         if (this._elements?.img) {
             const currentSrc = this._elements.img.getAttribute('src');
             if (src) {
                 if (currentSrc !== src) {
-                    this._elements.img.style.display = 'block'; // Show it
+                    this._elements.img.style.display = 'block'; 
                     this._elements.img.src = src;
                 }
             } else {
-                // If no source, remove attribute and hide to prevent border
-                this._elements.img.removeAttribute('src');
-                this._elements.img.style.display = 'none';
+                if (currentSrc) { 
+                    this._elements.img.removeAttribute('src');
+                    this._elements.img.style.display = 'none';
+                }
             }
         }
 
-        // --- 6. WEATHER PARAMETERS ---
-        let weatherState = (wEntity.state || 'default').toLowerCase();
-
-        if (isNight && weatherState === 'sunny') weatherState = 'clear-night';
-        if (!isNight && weatherState === 'clear-night') weatherState = 'sunny';
-
-        const key = weatherState.toLowerCase();
-        let newParams = { ...(WEATHER_MAP[key] || WEATHER_MAP['default']) };
-        
-        if (isNight && (key === 'sunny' || key === 'clear-night')) {
-            newParams = { ...newParams, type: 'stars', count: 280 };
+        // --- 7. FIRST LOAD ---
+        if (!this._hasReceivedFirstHass) {
+            this._hasReceivedFirstHass = true;
+            this._renderGate.hasFirstHass = true;
+            
+            this._lastState = weatherState;
+            this._params = newParams;
+            this._stateInitialized = true;
+            this._cloudsSorted = false;
+            
+            this._tryInitialize();
+            return;
         }
 
-        // --- 7. FIRST LOAD (Non-Blocking & Stable) ---
-		if (!this._hasReceivedFirstHass) {
-			this._hasReceivedFirstHass = true;
-			this._renderGate.hasFirstHass = true;
-			
-			this._lastState = weatherState;
-			this._params = newParams;
-			this._stateInitialized = true;
-			this._cloudsSorted = false;
-			
-			// Let coordinator handle initialization
-			this._tryInitialize();
-			return;
-		}
+        // --- 8. CHANGE DETECTION (ANIMATION REBOOT) ---
+        const oldParams = this._params;
+        const typeChanged = !oldParams || oldParams.type !== newParams.type;
+        const stateChanged = this._lastState !== weatherState;
 
-		// --- 8. CHANGE DETECTION ---
-		const oldParams = this._params;
-		const typeChanged = !oldParams || oldParams.type !== newParams.type;
-		const stateChanged = this._lastState !== weatherState;
+        this._lastState = weatherState;
 
-		this._lastState = weatherState;
-
-		if (typeChanged || stateChanged || hasNightChanged) {
-			this._params = newParams;
-			
-			if (this.isConnected) {
-				setTimeout(() => {
-					this._initParticles();
-					if (this._width > 0) this._lastInitWidth = this._width;
-					this._startAnimation();
-				}, 0);
-			}
-		} else {
-			this._params = newParams;
-		}
-	}
+        if (typeChanged || stateChanged || hasNightChanged) {
+            this._params = newParams;
+            
+            if (this.isConnected) {
+                setTimeout(() => {
+                    this._initParticles();
+                    if (this._width > 0) this._lastInitWidth = this._width;
+                    this._startAnimation();
+                }, 0);
+            }
+        } else {
+            this._params = newParams;
+        }
+    }
 
     getCardSize() {
         return 4;
@@ -848,6 +1181,7 @@ class AtmosphericWeatherCard extends HTMLElement {
             weather_entity: 'weather.forecast_home',
             mode: 'auto',
             sun_entity: 'sun.sun',
+			card_style: false,
             full_width: false,
             offset: '0px',
             sun_moon_x_position: 100,  // Positive=Left, Negative=Right
@@ -1225,8 +1559,8 @@ class AtmosphericWeatherCard extends HTMLElement {
             this._comets.push(this._createComet(w, h));
         }
 
-        // Satellites (Night Only)
-        if (this._isNight && !p.dark && Math.random() < 0.8) {
+        // Satellites (Night Only, Rare)
+        if (this._isNight && !p.dark && Math.random() < 0.4) {
              this._satellites.push({
                  x: Math.random() * w,
                  y: Math.random() * (h * 0.4),
