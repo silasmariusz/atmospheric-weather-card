@@ -3075,7 +3075,7 @@ class AtmosphericWeatherCard extends HTMLElement {
         
         // --- A. ATMOSPHERIC GLOW (Dynamic Visibility) ---
         // 1. Base Intensity
-        const glowIntensity = 0.25 + phase.illumination * 0.2;
+        const glowIntensity = 0.23 + phase.illumination * 0.18;
         const effectiveGlow = glowIntensity * fadeOpacity * moonVisibility;
         
         ctx.globalCompositeOperation = 'screen'; 
