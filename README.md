@@ -11,16 +11,16 @@ This card is designed to be versatile and can be used in two distinct modes depe
 
 ### 1. Standalone Mode (New in v1.7)
 **"The Plug-and-Play Card"**
-* **What it does:** Operates as a standard Lovelace card with its own background, rounded corners, and shadow.
-* **Visuals:** Renders gorgeous, dynamic gradients that change based on the weather (e.g., Deep Grey for storms, Sky Blue for sunny days, OLED Black for night).
-* **Data:** Automatically displays the current temperature and location text directly on the card.
-* **Best for:** Section views, grids, and standard dashboards where you want a weather card that just works.
+* **What it does:** Operates as a standard Lovelace card with its own background and uses default home assistant card styles.
+* **Visuals:** Renders dynamic gradients that change based on the weather (e.g., Deep Grey for storms, Sky Blue for sunny days).
+* **Data:** Automatically displays the current temperature
+* **Best for:** Section views, grids, and standard dashboards where you just want a good looking weather card.
 
 ### 2. Immersive Mode
 **"The Infinite Canvas"**
 * **What it does:** Renders with a **transparent background**.
-* **Visuals:** Designed to be placed *behind* other elements or used in a `picture-elements` card. It acts as a living "atmosphere" layer for your dashboard.
-* **Data:** Displays animations only (no text), allowing you to overlay your own buttons or sensors.
+* **Visuals:** It acts as a living "atmosphere" layer for your dashboard.
+* **Data:** Displays animations only (no text)
 * **Best for:** Your Dashboard Header, Heavily customized dashboards or layering behind a transparent image of your house.
 
 ---
