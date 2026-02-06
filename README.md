@@ -68,6 +68,8 @@ Pair it with a transparent PNG of your house (or anything else) for the full eff
 type: custom:atmospheric-weather-card
 weather_entity: weather.forecast_home
 
+# Optional settings
+
 # --- Layout ---
 card_height: 200px
 full_width: true
@@ -81,7 +83,7 @@ image_alignment: bottom
 day: /local/images/my-house-day.png
 night: /local/images/my-house-night.png
 
-# --- Smart Status (Optional) ---
+# --- Smart Status ---
 status_entity: binary_sensor.front_door
 status_image_day: /local/images/house-open-day.png
 status_image_night: /local/images/house-open-night.png
@@ -210,7 +212,7 @@ The card uses a 4-level priority chain. It checks each level in order and uses t
 | **4** | System dark mode | — | Falls back to the Home Assistant dark mode toggle in the sidebar. |
 
 > [!NOTE]
-> For most setups, `mode: auto` with `sun_entity: sun.sun` is all you need. The `theme_entity` option is useful if you have a theme automation (e.g. an `input_select`) that you want the card to follow instead of the sun.
+> For most setups, `sun_entity: sun.sun` is all you need. The `theme_entity` option is useful if you have a theme automation (e.g. an `input_select`) that you want the card to follow instead of the sun.
 
 ---
 
