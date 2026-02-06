@@ -3,10 +3,33 @@
 > **AI-DISCLAIMER:**
 > This card was created with the help of AI.
 
+A custom Home Assistant card that renders beautiful, animated weather effects. It features organic clouds, realistic rain/snow physics, suspended particles, and dynamic lighting.
+
+## Usage Modes
+
+This card is designed to be versatile and can be used in two distinct modes depending on your dashboard design.
+
+### 1. Standalone Mode (New in v1.7)
+**"The Plug-and-Play Card"**
+* **What it does:** Operates as a standard Lovelace card with its own background, rounded corners, and shadow.
+* **Visuals:** Renders gorgeous, dynamic gradients that change based on the weather (e.g., Deep Grey for storms, Sky Blue for sunny days, OLED Black for night).
+* **Data:** Automatically displays the current temperature and location text directly on the card.
+* **Best for:** Section views, grids, and standard dashboards where you want a weather card that just works.
+
+### 2. Immersive Mode
+**"The Infinite Canvas"**
+* **What it does:** Renders with a **transparent background**.
+* **Visuals:** Designed to be placed *behind* other elements or used in a `picture-elements` card. It acts as a living "atmosphere" layer for your dashboard.
+* **Data:** Displays animations only (no text), allowing you to overlay your own buttons or sensors.
+* **Best for:** Your Dashboard Header, Heavily customized dashboards or layering behind a transparent image of your house.
+
+---
+
 ## Table of Contents
 
+* [Screenshots (Standalone Mode)](#screenshots-standalone-mode)
+* [Screenshots (Immersive Mode)](#screenshots-immersive-mode)
 * [Screenshots (The Complete Scene)](#screenshots-the-complete-scene)
-* [Screenshots (Standalone Weather Visuals)](#screenshots-standalone-weather-visuals)
 * [Technical Features](#technical-features)
 * [Installation](#installation)
 * [Configuration](#configuration)
@@ -16,7 +39,15 @@
 
 ---
 
-## Screenshots (Standalone Weather Visuals)
+## Screenshots (Standalone Mode)
+
+
+<img width="407" height="151" alt="image" src="https://github.com/user-attachments/assets/be96819b-923a-414d-8bd6-414b2a80cded" />
+<img width="386" height="126" alt="image" src="https://github.com/user-attachments/assets/4b63e40a-286e-48d6-b0e3-e2095493cfd7" />
+
+
+
+## Screenshots (Immersive Mode)
 
 | Day | Night |
 | :---: | :---: |
@@ -43,7 +74,7 @@
 * **Organic Cloud Generation:** Uses a custom generator to create unique, realistic cloud shapes every time, ensuring your sky never looks repetitive.
 * **Dynamic Weather Physics:** Individual particles for rain, snow, and hail with custom physics for speed, turbulence, and wobbling.
 * **Real-Time Moon Rendering:** Calculates and draws the exact moon illumination and terminator line based on your sensor data.
-* **Supports using your own custom image:** Personalize the card by displaying your own image on the right side. It’s perfect for a transparent PNG of your home, boat, or wherever your Home Assistant is running.
+* **Supports using your own custom image:** Personalize the card by displaying your own image on the right side. It is perfect for a transparent PNG of your home, boat, or wherever your Home Assistant is running.
 * **Performance & Battery Optimized:** Automatically pauses animations when the card is hidden from view and uses debounced resizing to prevent dashboard lag.
 
 ## Installation
@@ -72,44 +103,57 @@
 
 ## Configuration
 
-### Basic Usage
-The only strict requirement is a weather entity.
+### Standalone Mode Example
+Use this config to add a simple, beautiful weather card to any view.
 
 ```yaml
 type: custom:atmospheric-weather-card
-weather_entity: weather.forecast_home
+weather_entity: weather.forecast
+card_style: standalone
+card_height: 110
+offset: 24px 0px 24px 0px
+sun_moon_x_position: -55
+sun_moon_y_position: 55
+mode: auto
+sun_entity: sun.sun
+tap_action:
+  action: more-info
+  entity: weather.forecast
+
 ```
 
-### Full Configuration (Recommended)
-To get the full effect with your own home image, smart status, and moon phases:
+### Immersive Mode Example
+Use this config if you want to use the card as a background, or combined with a transparent image of your home.
 
 ```yaml
 type: custom:atmospheric-weather-card
 weather_entity: weather.forecast_home
+card_style: false   # <--- ENABLE IMMERSIVE MODE (Default)
+
+# --- Layout ---
+card_height: 200px
+full_width: true    # Removes margins for full edge-to-edge effects
+offset: "-50px 0px 0px 0px" # Top Right Bottom Left
+sun_moon_x_position: -50
+sun_moon_y_position: 40
+
+# --- Optional: Custom Images ---
+# You can display a transparent PNG of your house on top of the weather
+image_scale: 100
+image_alignment: bottom
+day: /local/images/my-house-day.png
+night: /local/images/my-house-night.png
+
+# --- Optional: Smart Status ---
+status_entity: binary_sensor.front_door
+status_image_day: /local/images/house-open-day.png
+status_image_night: /local/images/house-open-night.png
 
 # --- Logic & Automation ---
 mode: auto
 theme_entity: input_select.theme
 sun_entity: sun.sun
 moon_phase_entity: sensor.moon_phase
-
-# --- Layout & Dimensions ---
-full_width: true
-card_height: 200
-offset: "-50px 0px 0px 0px"
-sun_moon_x_position: -50
-sun_moon_y_position: 40
-image_scale: 100
-image_alignment: bottom
-
-# --- Images ---
-day: /local/images/my-house-day.png
-night: /local/images/my-house-night.png
-
-# --- Smart Status (Optional) ---
-status_entity: binary_sensor.front_door
-status_image_day: /local/images/house-open-day.png
-status_image_night: /local/images/house-open-night.png
 ```
 
 ## Feature Documentation
@@ -123,9 +167,15 @@ The card uses a strict 3-layer priority system to decide between Night and Day e
 | **2** | **Theme Entity** | `theme_entity` | Applies night visuals if state is "Dark" or "Night". |
 | **3** | **Automation** | `sun_entity` | Fallback. Checks if sun is `below_horizon`. |
 
+### Smart Text (Standalone Mode Only)
+When using `card_style: true`, the card displays the temperature and location.
+* **Auto-Alignment:** The card is aware of the Sun/Moon position. If the Sun is on the Left, the text automatically moves to the Right to avoid overlapping.
+* **Locale Formatting:** Temperature decimals (e.g., `20.5` vs `20,5`) are automatically formatted based on your Home Assistant language settings.
+
 ### Celestial Positioning
-* **`sun_moon_x_position`**: Horizontal placement. Positive = from Left, Negative = from Right.
-* **`sun_moon_y_position`**: Vertical distance from the Top.
+Control where the Sun and Moon appear.
+* **`sun_moon_x_position`**: Horizontal placement. Positive numbers (e.g., `50`) offset from the **Left**. Negative numbers (e.g., `-50`) offset from the **Right**.
+* **`sun_moon_y_position`**: Vertical distance from the **Top**.
 
 ### Generic Status Entity
 Trigger an image change if the entity is in any active state: `on`, `open`, `unlocked`, `true`, `home`, `active`.
@@ -143,6 +193,8 @@ Trigger an image change if the entity is in any active state: `on`, `open`, `unl
 
 ## Custom House Image Generation
 
+To get the "Immersive" look with your own home:
+
 1. **Capture a Reference:** Take a photo from a corner to help the AI understand depth.
 2. **Generate the Image:** Use the prompt below for a clean 3D architectural look.
 
@@ -152,4 +204,4 @@ Trigger an image change if the entity is in any active state: `on`, `open`, `unl
 3. **Remove the Background:** Save as a transparent PNG so weather effects appear behind the house.
 
 ## Adding Buttons
-To achieve the floating button look, place a `custom:paper-buttons-row` card before this card and use the `offset` feature to layer them.
+To achieve the floating button look seen in the screenshots, place a `custom:paper-buttons-row` card before this card and use the `offset` feature to layer them.
