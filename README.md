@@ -7,24 +7,6 @@ A custom Home Assistant card that renders beautiful, animated weather effects. I
 
 https://github.com/user-attachments/assets/b7462f32-f193-4b5f-81c6-c6de321b8c42
 
-## Usage Modes
-
-This card is designed to be versatile and can be used in two distinct modes depending on your dashboard design.
-
-### 1. Standalone Mode (New in v1.7)
-**"The Plug-and-Play Card"**
-* **What it does:** Operates as a standard Lovelace card with its own background and uses default home assistant card styles.
-* **Visuals:** Renders dynamic gradients that change based on the weather (e.g., Deep Grey for storms, Sky Blue for sunny days).
-* **Data:** Automatically displays the current temperature
-* **Best for:** Section views, grids, and standard dashboards where you just want a good looking weather card.
-
-### 2. Immersive Mode
-**"The Infinite Canvas"**
-* **What it does:** Renders with a **transparent background**.
-* **Visuals:** It acts as a living "atmosphere" layer for your dashboard.
-* **Data:** Displays animations only (no text)
-* **Best for:** Your Dashboard Header, Heavily customized dashboards or layering behind a transparent image of your house.
-
 ---
 
 ## Table of Contents
@@ -69,6 +51,17 @@ This card is designed to be versatile and can be used in two distinct modes depe
 
   These images display a complete dashboard layout. Please note that this component provides the **animated weather background and house visualization only**. The overlay buttons shown are separate elements; to replicate them, please refer to the included `paper-buttons-row-example.yml`.
 </details>
+
+
+## Usage Modes
+
+This card is designed to be versatile and can be used in two distinct modes depending on your dashboard design.
+
+### 1. Standalone Mode (New in v1.7)
+Operates as a standard Lovelace card with its own background and uses default home assistant card styles.
+
+### 2. Immersive Mode
+Renders with a transparent background and acts as a living "atmosphere" layer for your dashboard. Looks best with a theme which switches dark/light mode.
 
 ## Technical Features
 
