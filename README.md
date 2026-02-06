@@ -93,11 +93,14 @@ theme_entity: input_select.theme
 sun_entity: sun.sun
 moon_phase_entity: sensor.moon_phase
 
-# --- Layout ---
+# --- Layout & Dimensions ---
 full_width: true
+card_height: 200
 offset: "-50px 0px 0px 0px"
 sun_moon_x_position: -50
-sun_moon_y_position: 40 
+sun_moon_y_position: 40
+image_scale: 100
+image_alignment: bottom
 
 # --- Images ---
 day: /local/images/my-house-day.png
