@@ -5,6 +5,8 @@
 
 A custom Home Assistant card that renders beautiful, animated weather effects. It features organic clouds, realistic rain/snow physics, suspended particles, and dynamic lighting.
 
+https://github.com/user-attachments/assets/b7462f32-f193-4b5f-81c6-c6de321b8c42
+
 ## Usage Modes
 
 This card is designed to be versatile and can be used in two distinct modes depending on your dashboard design.
