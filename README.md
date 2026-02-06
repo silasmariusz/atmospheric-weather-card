@@ -1,6 +1,6 @@
 # Atmospheric Weather Card
 
-A custom Home Assistant card that renders animated weather effects on a canvas. It draws organic clouds, rain, snow, hail, fog, lightning, and a sky full of ambient life — birds, planes, shooting stars, comets, leaves, and the occasional Aurora Borealis. The sun and moon are rendered in real time, with the moon showing its actual phase based on your sensor data.
+I started this because I wanted a weather card that looked nice, but I ended up building a physics engine. This card draws everything live on a canvas using JavaScript. There are no static images or video loops. The code generates the clouds and rain so they move naturally and never repeat. It also adds random details based on the current weather like wind-blown leaves, planes, birds and shooting stars to make the dashboard feel alive. And if you're lucky, you might even see the rare aurora borealis.
 
 https://github.com/user-attachments/assets/b7462f32-f193-4b5f-81c6-c6de321b8c42
 
@@ -164,7 +164,7 @@ The sun and moon share a single position. During the day the sun is drawn there 
 | `sun_moon_y_position` | `number` | `100` | Vertical distance from the top. |
 
 > [!TIP]
-> In standalone mode, the temperature and location text automatically move to the opposite side of the sun/moon.
+> In standalone mode, the text automatically moves to the opposite side of the sun/moon.
 
 ### Custom Image
 
