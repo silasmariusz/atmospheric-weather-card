@@ -114,8 +114,8 @@ cards:
 Renders with a fully transparent background so it blends seamlessly into your dashboard.
 
 > [!IMPORTANT]
-> **Immersive mode only looks correct if the card's day/night cycle matches your dashboard theme.**
-> For this to look right, you need a Home Assistant theme that switches between a light and dark background. If you enforce a dark dashboard 24/7, the card will still render "Day Mode" when the sun is up, causing weather effects meant for bright backgrounds to look broken. To fix this, use `theme_entity` to sync the card with your theme, or set `mode: dark` if you use a permanently dark theme.
+> **Immersive mode requires the card's lighting to match your dashboard theme.**
+> Using a fixed theme (e.g., dark mode 24/7) can clash with the card's "Day Mode" when the sun is up, causing weather effects to look broken. To ensure a match, use `theme_entity` or manually force the style using `mode: dark` or `mode: light`.
 
 <details>
 <summary><b>Example 1 — Header Integration</b></summary>
