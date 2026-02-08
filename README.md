@@ -343,7 +343,6 @@ Each state sets a unique combination of particle type, count, cloud density, win
 
 ### Performance
 
-**Client-Side Rendering**
 Rendering of the weather animations is handled entirely by the client browser using HTML5 Canvas. Server impact is limited to standard state updates.
 
 * **Resource Management**
@@ -354,5 +353,4 @@ Rendering of the weather animations is handled entirely by the client browser us
   Native support for Section-based dashboards with debounced resizing.
 
 > [!NOTE]
-> **Hardware Requirement**
-> This card relies on **GPU Hardware Acceleration**. If high CPU usage is observed, verify that hardware acceleration is enabled in the browser or kiosk settings. Software-only rendering will significantly degrade performance.
+> **Hardware Requirement:** This card relies on GPU Hardware Acceleration. If high CPU usage is observed, verify that hardware acceleration is enabled in the browser or kiosk settings. Software-only rendering will significantly degrade performance.
