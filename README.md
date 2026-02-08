@@ -229,43 +229,85 @@ tap_action:
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `weather_entity` | `string` | **required** | Your weather integration entity. The only required option. |
-| | | | |
-| **Layout & Appearance** | | | |
+
+<details>
+<summary><strong>Layout & Appearance</strong></summary>
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
 | `card_style` | `string\|boolean` | `false` | Set to `standalone` to enable standalone mode with built-in backgrounds and text. Omit or set to `false` for immersive (transparent) mode. |
 | `card_height` | `number\|string` | `200px` | Card height. Numbers are treated as pixels (`110` → `110px`). Strings are used as-is. |
 | `full_width` | `boolean` | `false` | Stretches the card edge-to-edge by removing side margins. Mainly useful in immersive mode. |
 | `offset` | `string` | `0px` | CSS margin shorthand applied to the card. Format: `"Top Right Bottom Left"`. Negative values pull the card behind adjacent elements (e.g. `"-50px 0px 0px 0px"`). |
-| | | | |
-| **Sun & Moon Position** | | | |
+
+</details>
+
+<details>
+<summary><strong>Sun & Moon Position</strong></summary>
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
 | `sun_moon_x_position` | `number` | `100` | Horizontal position. **Positive** = offset from the left edge. **Negative** = offset from the right edge (e.g. `-55` places it 55 units from the right). |
 | `sun_moon_y_position` | `number` | `100` | Vertical distance from the top. |
-| | | | |
-| **Custom Image** | | | |
+
+</details>
+
+<details>
+<summary><strong>Custom Image</strong></summary>
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
 | `day` | `string` | — | Path to a daytime image (e.g. `/local/images/house-day.png`). Transparent PNGs work best. |
 | `night` | `string` | — | Path to a nighttime image. Falls back to `day` if not set. |
 | `image_scale` | `number` | `100` | Image height as a percentage of the card height. |
 | `image_alignment` | `string` | `top-right` | Image position. Combine vertical (`top`, `center`, `bottom`) + horizontal (`left`, `right`). Examples: `bottom-right`, `center-left`, `bottom`. |
-| | | | |
 | `offset` | `string` | `0px` | CSS margin shorthand applied to the card. Format: `"Top Right Bottom Left"`. Negative values pull the card behind adjacent elements (e.g. `"-50px 0px 0px 0px"`). |
-| | | | |
-| **Standalone Text** | | | |
+
+</details>
+
+<details>
+<summary><strong>Standalone Text</strong></summary>
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
 | `bottom_text_sensor` | `string` | — | Entity ID of a sensor to display at the bottom instead of wind speed (e.g. `sensor.humidity`). |
 | `bottom_text_icon` | `string` | *Auto* | Force a specific icon (e.g. `mdi:home`). Defaults to `mdi:weather-windy` or the sensor's native icon. |
 | `disable_text` | `boolean` | `false` | If `true`, hides both the temperature and bottom text completely. |
 | `disable_bottom_icon` | `boolean` | `false` | If `true`, hides only the icon in the bottom text. |
-| **Smart Status** | | | |
+
+</details>
+
+<details>
+<summary><strong>Smart Status</strong></summary>
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
 | `status_entity` | `string` | — | Entity to watch (e.g. `binary_sensor.front_door`). Requires at least one status image. Active states for the status feature are: `on`, `open`, `unlocked`, `true`, `home`, `active`. |
 | `status_image_day` | `string` | — | Override image for daytime when entity is active. |
 | `status_image_night` | `string` | — | Override image for nighttime. Falls back to `status_image_day`. |
-| | | | |
-| **Entities & Logic** | | | |
+
+</details>
+
+<details>
+<summary><strong>Entities & Logic</strong></summary>
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
 | `mode` | `string` | `auto` | Force day/night: `light` or `day` for daytime, `dark` or `night` for nighttime, `auto` to detect automatically. See [Day / Night Logic](#day--night-logic). |
 | `sun_entity` | `string` | — | Sun entity for automatic day/night detection (e.g. `sun.sun`). |
 | `theme_entity` | `string` | — | An entity whose state indicates the active theme. Night mode triggers when the state is `dark`, `night`, `evening`, `on`, `true`, or `below_horizon`. |
 | `moon_phase_entity` | `string` | — | Moon phase sensor (e.g. `sensor.moon_phase`). Renders the moon with accurate illumination and terminator. Supported: `new_moon`, `waxing_crescent`, `first_quarter`, `waxing_gibbous`, `full_moon`, `waning_gibbous`, `last_quarter`, `waning_crescent`. |
-| | | | |
-| **Interaction** | | | |
+
+</details>
+
+<details>
+<summary><strong>Interaction</strong></summary>
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
 | `tap_action` | `object` | — | Standard HA action config. Example: `{ action: more-info, entity: weather.forecast }` |
+
+</details>
 
 > **Tip** — The sun and moon share a single position. During the day the sun is drawn there (only in fair weather like sunny, partly cloudy, exceptional); at night the moon takes its place. In standalone mode, the text automatically moves to the opposite side.
 
