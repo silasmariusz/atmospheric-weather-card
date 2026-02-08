@@ -32,9 +32,9 @@ The card has two modes that affect how it renders and what kind of dashboard set
 
 ### Standalone Mode
 
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/a84957d1-b824-4dd3-8b6c-b9d8963c568a" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/00be4670-d259-4690-92ba-e440e71244ef" />
 
-A self-contained card with its own weather-aware background gradients. The card renders the current temperature pulled from your weather entity and the text automatically positions itself on the opposite side of the sun/moon to avoid overlap.
+A self-contained card with its own weather-aware background gradients. The card renders the current temperature and bottom detail pulled from your entities (defaults to Wind Speed). The text automatically positions itself on the opposite side of the sun/moon to avoid overlap.
 
 <details>
 <summary><b>Example 1 — Basic Card</b></summary>
@@ -60,7 +60,7 @@ tap_action:
   entity: weather.forecast_home
 ```
 
-> **Tip** — The location text is simply the `friendly_name` of your weather entity. To change it (e.g. to "London" or "My House"), just rename the entity in Home Assistant. The temperature is formatted automatically based on your Home Assistant language setting (e.g. `4.5` in English, `4,5` in German).
+> **Tip** — By default, the bottom text displays **Wind Speed**. You can change this to show any sensor (like `sensor.humidity` or your address) using the `bottom_text_sensor` option. The temperature is formatted automatically based on your Home Assistant language setting (e.g. `4.5` in English, `4,5` in German).
 
 </details>
 
@@ -242,6 +242,13 @@ tap_action:
 | `image_scale` | `number` | `100` | Image height as a percentage of the card height. |
 | `image_alignment` | `string` | `top-right` | Image position. Combine vertical (`top`, `center`, `bottom`) + horizontal (`left`, `right`). Examples: `bottom-right`, `center-left`, `bottom`. |
 | | | | |
+| `offset` | `string` | `0px` | CSS margin shorthand applied to the card. Format: `"Top Right Bottom Left"`. Negative values pull the card behind adjacent elements (e.g. `"-50px 0px 0px 0px"`). |
+| | | | |
+| **Standalone Text** | | | |
+| `bottom_text_sensor` | `string` | — | Entity ID of a sensor to display at the bottom instead of wind speed (e.g. `sensor.humidity`). |
+| `bottom_text_icon` | `string` | *Auto* | Force a specific icon (e.g. `mdi:home`). Defaults to `mdi:weather-windy` or the sensor's native icon. |
+| `disable_text` | `boolean` | `false` | If `true`, hides both the temperature and bottom text completely. |
+| `disable_bottom_icon` | `boolean` | `false` | If `true`, hides only the icon in the bottom text. |
 | **Smart Status** | | | |
 | `status_entity` | `string` | — | Entity to watch (e.g. `binary_sensor.front_door`). Requires at least one status image. Active states for the status feature are: `on`, `open`, `unlocked`, `true`, `home`, `active`. |
 | `status_image_day` | `string` | — | Override image for daytime when entity is active. |
