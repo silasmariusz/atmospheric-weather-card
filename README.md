@@ -219,6 +219,12 @@ tap_action:
 
 <br>
 
+<details>
+  <summary><b>⚠️ Note for Linux/Nvidia users</b></summary>
+
+  Please verify that <b>Hardware Acceleration</b> is enabled in your browser. Linux browsers often default to software rendering which forces the CPU to handle animations intended for the GPU.
+</details>
+
 ---
 
 ### INSTALLATION
