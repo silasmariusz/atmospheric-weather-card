@@ -258,8 +258,7 @@ tap_action:
 | **`sun_entity`** | string | **Recommended** | The sun entity (e.g. `sun.sun`) is used to automatically calculate day/night cycles. **One of `sun_entity`, `theme_entity`, or `mode` is recommended.** |
 
 > [!IMPORTANT]
-> **Day/Night Logic is Required**
-> In addition to the `weather_entity`, the card needs to know if it is day or night to render the correct lighting. You must configure a method for this (e.g., `sun_entity`).
+> In addition to the `weather_entity`, the card needs to know if it is day or night to render the correct lighting. You should configure a method for this so it looks right (e.g., `sun_entity`).
 >
 > [See how to configure Day / Night Logic here](#day--night-logic)
 
