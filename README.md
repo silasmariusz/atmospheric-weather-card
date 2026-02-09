@@ -255,7 +255,7 @@ tap_action:
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | **`weather_entity`** | string | **Required** | Your weather integration entity (e.g. `weather.forecast_home`). |
-| **`sun_entity`** | string | **Recommended** | The sun entity (e.g. `sun.sun`) used to automatically calculate day/night cycles. **One of `sun_entity`, `theme_entity`, or `mode` is required.** |
+| **`sun_entity`** | string | **Recommended** | The sun entity (e.g. `sun.sun`) is used to automatically calculate day/night cycles. **One of `sun_entity`, `theme_entity`, or `mode` is recommended.** |
 
 > [!IMPORTANT]
 > **Day/Night Logic is Required**
