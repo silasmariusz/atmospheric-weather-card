@@ -258,9 +258,7 @@ tap_action:
 | **`sun_entity`** | string | **Recommended** | The sun entity (e.g. `sun.sun`) is used to automatically calculate day/night cycles. **One of `sun_entity`, `theme_entity`, or `mode` is recommended.** |
 
 > [!IMPORTANT]
-> In addition to the `weather_entity`, the card needs to know if it is day or night to render the correct lighting. You should configure a method for this so it looks right (e.g., `sun_entity`).
->
-> [Day / Night Logic](#day--night-logic)
+> In addition to the `weather_entity`, the card needs to know if it is day or night to render the correct lighting. You should configure a method for this so it looks right (e.g., `sun_entity`). [See Day / Night Logic](#day--night-logic)
 
 
 <details>
@@ -416,7 +414,7 @@ Each state sets a unique combination of particle type, count, cloud density, win
 
 ---
 
-### Performance
+### PERFORMANCE
 
 Rendering of the weather animations is handled entirely by the client browser using HTML5 Canvas. Server impact is limited to standard state updates.
 
