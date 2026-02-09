@@ -252,8 +252,6 @@ tap_action:
 
 ### CONFIGURATION REFERENCE
 
-### Configuration Reference
-
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | **`weather_entity`** | string | **Required** | Your weather integration entity (e.g. `weather.forecast_home`). |
