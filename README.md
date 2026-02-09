@@ -252,9 +252,19 @@ tap_action:
 
 ### CONFIGURATION REFERENCE
 
+### Configuration Reference
+
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `weather_entity` | `string` | **required** | Your weather integration entity. The only required option. |
+| **`weather_entity`** | string | **Required** | Your weather integration entity (e.g. `weather.forecast_home`). |
+| **`sun_entity`** | string | **Recommended** | The sun entity (e.g. `sun.sun`) used to automatically calculate day/night cycles. **One of `sun_entity`, `theme_entity`, or `mode` is required.** |
+
+> [!IMPORTANT]
+> **Day/Night Logic is Required**
+> In addition to the `weather_entity`, the card needs to know if it is day or night to render the correct lighting. You must configure a method for this (e.g., `sun_entity`).
+>
+> [See how to configure Day / Night Logic here](#day--night-logic)
+
 
 <details>
 <summary><strong>Layout & Appearance</strong></summary>
