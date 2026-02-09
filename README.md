@@ -60,7 +60,8 @@ tap_action:
   entity: weather.forecast_home
 ```
 
-> **Tip** — By default, the bottom text displays **Wind Speed**. You can change this to show any sensor (like `sensor.humidity` or your address) using the `bottom_text_sensor` option. The temperature is formatted automatically based on your Home Assistant language setting (e.g. `4.5` in English, `4,5` in German).
+> **Tip:** Use `bottom_text_sensor` to replace the default **Wind Speed** with any entity (e.g., humidity or address). The sun and moon share a single position, swapping based on time and weather. In standalone mode, the text automatically shifts to the opposite side.
+
 
 </details>
 
@@ -72,7 +73,7 @@ tap_action:
 | :---: |
 | <img width="400" src="https://github.com/user-attachments/assets/cf6121ab-b8d0-43c4-89e6-a29faaa62fdd" /> |
 
-You can use a taller card height to fit the card into a grid or horizontal stack alongside other cards. This example pairs the weather card with a graph and a tile card.
+You can use a taller card height to fit the card into a grid or horizontal stack alongside other cards. This example pairs it with a graph and a tile card.
 
 ```yaml
 type: grid
@@ -256,6 +257,7 @@ tap_action:
 | :--- | :--- | :--- | :--- |
 | **`weather_entity`** | string | **Required** | Your weather integration entity (e.g. `weather.forecast_home`). |
 | **`sun_entity`** | string | **Recommended** | The sun entity (e.g. `sun.sun`) is used to automatically calculate day/night cycles. **One of `sun_entity`, `theme_entity`, or `mode` is recommended.** |
+| **`moon_phase_entity`** | `string` |**Recommended** | The moon phase entity (e.g. `sensor.moon_phase`) is used to render the moon with accurate illumination. **If omitted, the moon will always be displayed as a full moon.** |
 
 > [!IMPORTANT]
 > In addition to the `weather_entity`, the card needs to know if it is day or night to render the correct lighting. You should configure a method for this so it looks right (e.g., `sun_entity`). [See Day / Night Logic](#day--night-logic)
@@ -339,8 +341,6 @@ tap_action:
 | `tap_action` | `object` | — | Standard HA action config. Example: `{ action: more-info, entity: weather.forecast }` |
 
 </details>
-
-> **Tip** — The sun and moon share a single position. During the day the sun is drawn there (only in fair weather like sunny, partly cloudy, exceptional); at night the moon takes its place. In standalone mode, the text automatically moves to the opposite side.
 
 <br>
 
